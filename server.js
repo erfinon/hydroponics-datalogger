@@ -204,47 +204,40 @@ function saveSensorData(env_light, env_temp, env_humidity, water_temp, water_ec,
 // if threshold values are exceeded
 function regulateActions(env_light, env_temp, env_humidity, water_temp, water_ec, water_ph) {
   led.stop().off();
-  // Environment temperature
-  // Turn fan heater on when air is too cold,
-  // Turn fan cooler on when air is too hot.
-  if (env_temp >= config.thresholdValues.env_temp.min && env_temp <= config.thresholdValues.env_temp.max) {
+  // Fan heater
+  if (env_temp >= config.thresholdValues.env_temp.min) {
     ed_fanheater.close();
-    ed_fancooler.close();
   }
   if (env_temp < config.thresholdValues.env_temp.min) {
     led.pulse(1000);
     ed_fanheater.open();
     setTimeout(ed_fanheater.close(), 15000)
   }
-  if (env_temp > config.thresholdValues.env_temp.max) {
+
+  // Fan cooler
+  if (env_humidity >= config.thresholdValues.env_humidity.max) {
+    led.pulse(1000);
+    ed_fancooler.open();
+    setTimeout(ed_fancooler.close(), 60000)
+  }
+  if (env_temp >= config.thresholdValues.env_temp.max) {
     led.pulse(1000);
     ed_fancooler.open();
   }
 
-  // Environment humidity
-  // Turn fan cooler on when to humid,
-  // Turn mister on when too dry.
-  if (env_humidity >= config.thresholdValues.env_humidity.min && env_humidity <= config.thresholdValues.env_humidity.max) {
-    ed_mister.close();
-    ed_fancooler.close();
-  }
-  if (env_humidity < config.thresholdValues.env_humidity.min) {
+  // Ultrasonic mister
+  if (env_humidity <= config.thresholdValues.env_humidity.min) {
     led.pulse(1000);
     ed_mister.open();
-  }
-  if (env_humidity > config.thresholdValues.env_humidity.max) {
-    led.pulse(1000);
-    ed_fancooler.open();
+    setTimeout(ed_mister.close(), 30000)
   }
 
   // Water temperature
   // Turn heating pad on if too cold.
-  if (water_temp >= config.thresholdValues.water_temp.min) {
-    ed_heatingpad.close();
-  }
   if (water_temp < config.thresholdValues.water_temp.min) {
     led.pulse(1000);
     ed_heatingpad.open();
+    setTimeout(ed_heatingpad.close(), 60000)
   }
 
   /*
