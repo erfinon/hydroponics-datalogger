@@ -202,21 +202,21 @@ function saveSensorData(env_light, env_temp, env_humidity, water_temp, water_ec,
 
 // Start regulatory actions and light up LED diode
 // if threshold values are exceeded
-function regulateActions() {
+function regulateActions(env_light, env_temp, env_humidity, water_temp, water_ec, water_ph) {
   led.stop().off();
   // Environment temperature
   // Turn fan heater on when air is too cold,
   // Turn fan cooler on when air is too hot.
-  if (rt_env_temp >= config.thresholdValues.env_temp.min && rt_env_temp <= config.thresholdValues.env_temp.max) {
+  if (env_temp >= config.thresholdValues.env_temp.min && env_temp <= config.thresholdValues.env_temp.max) {
     ed_fanheater.close();
     ed_fancooler.close();
   }
-  if (rt_env_temp < config.thresholdValues.env_temp.min) {
+  if (env_temp < config.thresholdValues.env_temp.min) {
     led.pulse(1000);
     ed_fanheater.open();
     setTimeout(ed_fanheater.close(), 15000)
   }
-  if (rt_env_temp > config.thresholdValues.env_temp.max) {
+  if (env_temp > config.thresholdValues.env_temp.max) {
     led.pulse(1000);
     ed_fancooler.open();
   }
@@ -224,31 +224,32 @@ function regulateActions() {
   // Environment humidity
   // Turn fan cooler on when to humid,
   // Turn mister on when too dry.
-  if (rt_env_humidity >= config.thresholdValues.env_humidity.min && rt_env_humidity <= config.thresholdValues.env_humidity.max) {
+  if (env_humidity >= config.thresholdValues.env_humidity.min && env_humidity <= config.thresholdValues.env_humidity.max) {
     ed_mister.close();
     ed_fancooler.close();
   }
-  if (rt_env_humidity < config.thresholdValues.env_humidity.min) {
+  if (env_humidity < config.thresholdValues.env_humidity.min) {
     led.pulse(1000);
     ed_mister.open();
   }
-  if (rt_env_humidity > config.thresholdValues.env_humidity.max) {
+  if (env_humidity > config.thresholdValues.env_humidity.max) {
     led.pulse(1000);
     ed_fancooler.open();
   }
 
   // Water temperature
   // Turn heating pad on if too cold.
-  if (rt_water_temp >= config.thresholdValues.water_temp.min) {
+  if (water_temp >= config.thresholdValues.water_temp.min) {
     ed_heatingpad.close();
   }
-  if (rt_water_temp < config.thresholdValues.water_temp.min) {
+  if (water_temp < config.thresholdValues.water_temp.min) {
     led.pulse(1000);
     ed_heatingpad.open();
   }
 
+  /*
   // Water electrical conductivity
-  if (rt_water_ec < config.thresholdValues.water_ec.min) {
+  if (water_ec < config.thresholdValues.water_ec.min) {
     pump_nutrients1.open()
     setTimeout(pump_nutrients1.close(), 1000)
     pump_nutrients2.open()
@@ -256,14 +257,16 @@ function regulateActions() {
   }
 
   // Water pH
-  if (rt_water_ph < config.thresholdValues.water_ph.min) {
+  if (water_ph < config.thresholdValues.water_ph.min) {
     pump_phup.open()
     setTimeout(pump_phup.close(), 500)
   }
-  if (rt_water_ph > config.thresholdValues.water_ph.max) {
+  if (water_ph > config.thresholdValues.water_ph.max) {
     pump_phdown.open()
     setTimeout(pump_phdown.close(), 500)
   }
+
+   */
 }
 
 // Emit sensor data and regulate grow environment on 60s intervals
@@ -286,7 +289,7 @@ setInterval(() => {
     console.log('Water quality: ', rt_water_temp, rt_water_ec, rt_water_ph);
   }
 
-  regulateActions();
+  regulateActions(rt_env_light, rt_env_temp, rt_env_humidity, rt_water_temp, rt_water_ec, rt_water_ph);
 }, 60000);
 
 // Express data routes
