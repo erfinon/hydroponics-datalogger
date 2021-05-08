@@ -115,7 +115,8 @@ function getWaterEC(sensorWaterEC) {
   let ec_value = (133.42 * ec_voltage * ec_voltage * ec_voltage - 255.86 * ec_voltage * ec_voltage + 857.39 * ec_voltage) * ec_kvalue;
   let ec_value25 = ec_value / (1.0+0.02*(ec_temperature-25.0)); // Temperature compensation
 
-  return (ec_value25 * tds_factor).toFixed(2);
+  //return (ec_value25 * tds_factor).toFixed(2);
+  return(1000);
 }
 
 // Read voltage from analog sensor and convert
@@ -162,7 +163,7 @@ function getAllWaterPHData(callback) {
 }
 
 // Save sensor data to database
-function saveSensorData() {
+function saveSensorData(env_light, env_temp, env_humidity, water_temp, water_ec, water_ph) {
   const {InfluxDB, Point} = require('@influxdata/influxdb-client');
   const client = new InfluxDB({url: 'http://' + config.influxdb.host, token: config.influxdb.token});
   const writeApi = client.getWriteApi(config.influxdb.org, config.influxdb.bucket, 'ms');
@@ -171,22 +172,22 @@ function saveSensorData() {
 
   // Data points
   const db_env_light = new Point('env_light')
-    .floatField('value', getEnvLight(sensorEnvLight));
+    .floatField('value', env_light);
   writeApi.writePoint(db_env_light);
   const db_env_temp = new Point('env_temp')
-    .floatField('value', getEnvTemp(sensorEnvTempRH));
+    .floatField('value', env_temp);
   writeApi.writePoint(db_env_temp);
   const db_env_rh = new Point('env_humidity')
-    .floatField('value', getEnvHumidity(sensorEnvTempRH));
+    .floatField('value', env_humidity);
   writeApi.writePoint(db_env_rh);
   const db_water_temp = new Point('water_temp')
-    .floatField('value', getWaterTemp(sensorWaterTemp));
+    .floatField('value', water_temp);
   writeApi.writePoint(db_water_temp);
   const db_water_ec = new Point('water_ec')
-    .floatField('value', getWaterEC(sensorWaterEC));
+    .floatField('value', water_ec);
   writeApi.writePoint(db_water_ec);
   const db_water_ph = new Point('water_ph')
-    .floatField('value', getWaterPH(sensorWaterPH));
+    .floatField('value', water_ph);
   writeApi.writePoint(db_water_ph);
   writeApi
     .close()
@@ -202,7 +203,6 @@ function saveSensorData() {
 // Start regulatory actions and light up LED diode
 // if threshold values are exceeded
 function regulateActions() {
-  /*
   led.stop().off();
   // Environment temperature
   // Turn fan heater on when air is too cold,
@@ -264,7 +264,6 @@ function regulateActions() {
     pump_phdown.open()
     setTimeout(pump_phdown.close(), 500)
   }
- */
 }
 
 // Emit sensor data and regulate grow environment on 60s intervals
@@ -276,15 +275,15 @@ setInterval(() => {
   let rt_water_ec = getWaterEC(sensorWaterEC);
   let rt_water_ph = getWaterPH(sensorWaterPH);
 
-  console.log('Environment: ', rt_env_light, rt_env_temp, rt_env_humidity);
-  console.log('Water: ', rt_water_temp, rt_water_ec, rt_water_ph);
+  console.log('Air climate: ', rt_env_light, rt_env_temp, rt_env_humidity);
+  console.log('Water quality: ', rt_water_temp, rt_water_ec, rt_water_ph);
 
   // Save to database if enabled in config
   if (config.influxdb.enabled === 1) {
-    saveSensorData();
+    saveSensorData(rt_env_light, rt_env_temp, rt_env_humidity, rt_water_temp, rt_water_ec, rt_water_ph);
   } else {
-    console.log('Air climate: ', getEnvLight(sensorEnvLight), getEnvTemp(sensorEnvTempRH), getEnvHumidity(sensorEnvTempRH));
-    console.log('Water quality: ', getWaterTemp(sensorWaterTemp), getWaterEC(sensorWaterEC), getWaterPH(sensorWaterPH));
+    console.log('Air climate: ', rt_env_light, rt_env_temp, rt_env_humidity);
+    console.log('Water quality: ', rt_water_temp, rt_water_ec, rt_water_ph);
   }
 
   regulateActions();
