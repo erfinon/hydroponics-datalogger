@@ -1,13 +1,13 @@
 module.exports = {
   mcu: {
-    port: 'COM3',
+    port: '/dev/ttyACM0',
   },
   express: {
     port: 4000,
   },
   influxdb: {
     enabled: 1,
-    host: '192.168.55.14:8086',
+    host: 'localhost:8086',
     org: 'admin',
     bucket: 'maya',
     username: 'admin',
@@ -32,29 +32,25 @@ module.exports = {
     ed_mister: 11,
   },
   thresholdValues: {
-    env_light: {
-      min: '',
-      max: '',
-    },
     env_temp: {
-      min: '',
-      max: '',
+      min: '21',
+      max: '26',
     },
     env_humidity: {
-      min: '',
-      max: '',
+      min: '40',
+      max: '60',
     },
     water_temp: {
-      min: '',
-      max: '',
+      min: '19',
+      max: '26', // No way to adjust water temperature down for now
     },
     water_ec: {
-      min: '',
-      max: '',
+      min: '400',
+      max: '', // No way to adjust EC down for now
     },
     water_ph: {
-      min: '',
-      max: '',
+      min: '5.2',
+      max: '6.8',
     },
   },
 };
