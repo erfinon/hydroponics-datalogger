@@ -1,6 +1,6 @@
 /*
 Sets up a new InfluxDB database with a user, organization
-and bucket. All values are defined in config/index.js
+and bucket. All values are defined in config.js
 */
 const path = require('path')
 const {InfluxDB} = require('@influxdata/influxdb-client')
