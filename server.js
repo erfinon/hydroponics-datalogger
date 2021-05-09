@@ -83,6 +83,7 @@ mcu.once('ready', () => {
     led.stop().off();
   }, 5000)
 
+// Exit handler for mcu
 }).on('exit', () => {
   led.stop().off();
   ed_fanheater.close();
@@ -90,8 +91,7 @@ mcu.once('ready', () => {
   ed_heatingpad.close();
   ed_mister.close();
   console.log('Dropping connection to microcontroller.');
-});
-
+// Error handler for mcu
 }).on('error', (err) => {
   console.log('Unable to connect with microcontroller.');
   console.log(err);
