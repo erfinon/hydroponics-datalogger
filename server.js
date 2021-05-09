@@ -86,10 +86,10 @@ mcu.once('ready', () => {
 // Exit handler for mcu
 }).on('exit', () => {
   led.stop().off();
-  ed_fanheater.open();
-  ed_fancooler.open();
-  ed_heatingpad.open();
-  ed_mister.open();
+  ed_fanheater.close();
+  ed_fancooler.close();
+  ed_heatingpad.close();
+  ed_mister.close();
   console.log('Dropping connection to microcontroller.');
 // Error handler for mcu
 }).on('error', (err) => {
@@ -214,61 +214,98 @@ function regulateActions(env_temp, env_humidity, water_temp) {
   // Fan heater
   if (env_temp <= config.thresholdValues.env_temp.min) {
     led.pulse(1000);
-    ed_fanheater.close();
+    ed_fanheater.open();
     console.log('Regulating air heater - ', env_temp);
   }
 
   // Ultrasonic mister
   if (env_humidity <= config.thresholdValues.env_humidity.min) {
     led.pulse(1000);
-    ed_mister.close();
+    ed_mister.open();
     console.log('Regulating mister - ', env_humidity);
   }
 
   setTimeout(() => {
-    ed_fanheater.open();
-    ed_mister.open();
+    ed_fanheater.close();
+    ed_mister.close();
   }, 15000)
 
   // Fan cooler
   if (env_humidity >= config.thresholdValues.env_humidity.max || env_temp >= config.thresholdValues.env_temp.max) {
     led.pulse(1000);
-    ed_fancooler.close();
+    ed_fancooler.open();
     console.log('Regulating air cooler - ', env_humidity, env_temp);
   } else {
-    ed_fancooler.open();
+    ed_fancooler.close();
   }
 
   // Water temperature
   // Turn heating pad on if too cold.
   if (water_temp < config.thresholdValues.water_temp.min) {
     led.pulse(1000);
-    ed_heatingpad.close();
+    ed_heatingpad.open();
     console.log('Regulating water temperature - ', water_temp);
   } else {
-    ed_heatingpad.open();
+    ed_heatingpad.close();
   }
-
   /*
-  // Water electrical conductivity
-  if (water_ec < config.thresholdValues.water_ec.min) {
-    pump_nutrients1.open();
-    setTimeout(pump_nutrients1.close(), 1000);
-    pump_nutrients2.open();
-    setTimeout(pump_nutrients2.close(), 1000);
-  }
+// Fan heater
+if (env_temp <= config.thresholdValues.env_temp.min) {
+  led.pulse(1000);
+  ed_fanheater.close();
+  console.log('Regulating air heater - ', env_temp);
+}
 
-  // Water pH
-  if (water_ph < config.thresholdValues.water_ph.min) {
-    pump_phup.open();
-    setTimeout(pump_phup.close(), 500)
-  }
-  if (water_ph > config.thresholdValues.water_ph.max) {
-    pump_phdown.open()
-    setTimeout(pump_phdown.close(), 500)
-  }
+// Ultrasonic mister
+if (env_humidity <= config.thresholdValues.env_humidity.min) {
+  led.pulse(1000);
+  ed_mister.close();
+  console.log('Regulating mister - ', env_humidity);
+}
 
-   */
+setTimeout(() => {
+  ed_fanheater.open();
+  ed_mister.open();
+}, 15000)
+
+// Fan cooler
+if (env_humidity >= config.thresholdValues.env_humidity.max || env_temp >= config.thresholdValues.env_temp.max) {
+  led.pulse(1000);
+  ed_fancooler.close();
+  console.log('Regulating air cooler - ', env_humidity, env_temp);
+} else {
+  ed_fancooler.open();
+}
+
+// Water temperature
+// Turn heating pad on if too cold.
+if (water_temp < config.thresholdValues.water_temp.min) {
+  led.pulse(1000);
+  ed_heatingpad.close();
+  console.log('Regulating water temperature - ', water_temp);
+} else {
+  ed_heatingpad.open();
+}
+
+// Water electrical conductivity
+if (water_ec < config.thresholdValues.water_ec.min) {
+  pump_nutrients1.open();
+  setTimeout(pump_nutrients1.close(), 1000);
+  pump_nutrients2.open();
+  setTimeout(pump_nutrients2.close(), 1000);
+}
+
+// Water pH
+if (water_ph < config.thresholdValues.water_ph.min) {
+  pump_phup.open();
+  setTimeout(pump_phup.close(), 500)
+}
+if (water_ph > config.thresholdValues.water_ph.max) {
+  pump_phdown.open()
+  setTimeout(pump_phdown.close(), 500)
+}
+
+ */
 }
 
 function stopDevice(device) {
