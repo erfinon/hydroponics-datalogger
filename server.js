@@ -265,7 +265,7 @@ function regulateEnvironment(env_temp, env_humidity, water_temp) {
     led.stop().off();
     ed_heatingpad.close();
   }
-
+  /*
   // Nutrient pumps
   if (water_ec < config.thresholdValues.water_ec.min) {
     led.pulse(1000);
@@ -302,6 +302,8 @@ function regulateEnvironment(env_temp, env_humidity, water_temp) {
       pump_phdown.close();
     }, 1000)
   }
+  
+   */
 }
 
 
