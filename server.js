@@ -39,6 +39,7 @@ mcu.once('ready', () => {
   mcu.isReady = true;
 
   // Initialize relays
+  /*
   pump_nutrients1 = new five.Relay(config.relayPins.pump_nutrients1);
   pump_nutrients1.open();
   pump_nutrients2 = new five.Relay(config.relayPins.pump_nutrients2);
@@ -47,14 +48,16 @@ mcu.once('ready', () => {
   pump_phup.open();
   pump_phdown = new five.Relay(config.relayPins.pump_phdown);
   pump_phdown.open();
+
+   */
   ed_fanheater = new five.Relay(config.relayPins.ed_fanheater);
-  ed_fanheater.open();
+  ed_fanheater.close();
   ed_fancooler = new five.Relay(config.relayPins.ed_fancooler);
-  ed_fancooler.open();
+  ed_fancooler.close();
   ed_heatingpad = new five.Relay(config.relayPins.ed_heatingpad);
-  ed_heatingpad.open();
+  ed_heatingpad.close();
   ed_mister = new five.Relay(config.relayPins.ed_mister);
-  ed_mister.open();
+  ed_mister.close();
 
   // Initialize sensors
   // Environment light sensor
@@ -222,20 +225,20 @@ function regulateActions(env_light, env_temp, env_humidity, water_temp) {
   // Fan heater
   if (env_temp <= config.thresholdValues.env_temp.min) {
     led.pulse(1000);
-    ed_fanheater.close();
+    ed_fanheater.open();
   }
 
   // Ultrasonic mister
   if (env_humidity <= config.thresholdValues.env_humidity.min) {
     led.pulse(1000);
-    ed_mister.close();
+    ed_mister.open();
   }
 
   // The fan heater and mister are powerful devices,
   // a timeout i used to prevent them from staying on for too long.
   setTimeout(() => {
-    ed_fanheater.open();
-    ed_mister.open();
+    ed_fanheater.close();
+    ed_mister.close();
     led.stop().off();
   }, 15000)
 
@@ -243,20 +246,20 @@ function regulateActions(env_light, env_temp, env_humidity, water_temp) {
   // Fan cooler
   if (env_humidity >= config.thresholdValues.env_humidity.max || env_temp >= config.thresholdValues.env_temp.max) {
     led.pulse(1000);
-    ed_fancooler.close();
+    ed_fancooler.open();
   } else {
     led.stop().off();
-    ed_fancooler.open();
+    ed_fancooler.close();
   }
 
   // Water temperature
   // Turn heating pad on if too cold.
   if (water_temp <= config.thresholdValues.water_temp.min) {
     led.pulse(1000);
-    ed_heatingpad.close();
+    ed_heatingpad.open();
   } else {
     led.stop().off();
-    ed_heatingpad.open();
+    ed_heatingpad.close();
   }
 
   /*
