@@ -1,6 +1,6 @@
 module.exports = {
   mcu: {
-    port: '/dev/ttyACM0',
+    port: '/dev/ttyUSB0',
   },
   express: {
     port: 4000,
@@ -42,7 +42,7 @@ module.exports = {
     },
     water_temp: {
       min: '19',
-      max: '26', // No way to adjust water temperature down for now
+      max: '', // No way to adjust water temperature down for now
     },
     water_ec: {
       min: '400',
