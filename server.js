@@ -215,21 +215,21 @@ function regulateActions(env_temp, env_humidity, water_temp) {
   // Fan heater
   if (env_temp < config.thresholdValues.env_temp.min) {
     led.pulse(1000);
-    ed_fanheater.open();
+    ed_fanheater.close();
     console.log('Regulating air heater - ', env_temp);
   }
 
   // Ultrasonic mister
   if (env_humidity < config.thresholdValues.env_humidity.min) {
     led.pulse(1000);
-    ed_mister.open();
+    ed_mister.close();
     console.log('Regulating mister - ', env_humidity);
   }
 
   // Fan cooler
   if (env_humidity > config.thresholdValues.env_humidity.max || env_temp > config.thresholdValues.env_temp.max) {
     led.pulse(1000);
-    ed_fancooler.open();
+    ed_fancooler.close();
     console.log('Regulating air cooler - ', env_humidity, env_temp);
   }
 
@@ -237,7 +237,7 @@ function regulateActions(env_temp, env_humidity, water_temp) {
   // Turn heating pad on if too cold.
   if (water_temp < config.thresholdValues.water_temp.min) {
     led.pulse(1000);
-    ed_heatingpad.open();
+    ed_heatingpad.close();
     console.log('Regulating water temperature - ', water_temp);
   }
 
@@ -271,10 +271,10 @@ function stopDevice(device) {
 
 function stopAllDevices() {
   led.stop().off();
-  ed_fanheater.close();
-  ed_fancooler.close();
-  ed_heatingpad.close();
-  ed_mister.close();
+  ed_fanheater.open();
+  ed_fancooler.open();
+  ed_heatingpad.open();
+  ed_mister.open();
   console.log('Stopping device all devices');
 }
 
