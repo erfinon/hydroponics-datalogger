@@ -94,10 +94,10 @@ mcu.once('ready', () => {
 // Exit handler for mcu
 }).on('exit', () => {
   led.stop().off();
-  ed_fanheater.close();
-  ed_fancooler.close();
-  ed_heatingpad.close();
-  ed_mister.close();
+  ed_fanheater.open();
+  ed_fancooler.open();
+  ed_heatingpad.open();
+  ed_mister.open();
   console.log('Dropping connection to microcontroller.');
 // Error handler for mcu
 }).on('error', (err) => {
@@ -244,9 +244,6 @@ function regulateActions(env_light, env_temp, env_humidity, water_temp) {
   if (env_humidity >= config.thresholdValues.env_humidity.max || env_temp >= config.thresholdValues.env_temp.max) {
     led.pulse(1000);
     ed_fancooler.open();
-  } else {
-    led.stop().off();
-    ed_fancooler.close();
   }
 
   // Water temperature
@@ -254,9 +251,6 @@ function regulateActions(env_light, env_temp, env_humidity, water_temp) {
   if (water_temp <= config.thresholdValues.water_temp.min) {
     led.pulse(1000);
     ed_heatingpad.open();
-  } else {
-    led.stop().off();
-    ed_heatingpad.close();
   }
 
   /*
