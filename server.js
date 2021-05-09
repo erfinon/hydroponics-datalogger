@@ -47,6 +47,10 @@ mcu.once('ready', () => {
   ed_fancooler = new five.Relay(config.relayPins.ed_fancooler);
   ed_heatingpad = new five.Relay(config.relayPins.ed_heatingpad);
   ed_mister = new five.Relay(config.relayPins.ed_mister);
+  ed_fanheater.close();
+  ed_fancooler.close();
+  ed_heatingpad.close();
+  ed_mister.close();
 
   // Initialize sensors
   // Environment light sensor
