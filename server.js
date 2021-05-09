@@ -222,14 +222,14 @@ function saveSensorData(env_light, env_temp, env_humidity, water_temp, water_ec,
 }
 
 // Start a regulating device
-function startDevice(device) {
+function startDevice(ed_device) {
   led.pulse(1000);
-  device.open();
-  console.log('Starting device - ', device);
+  ed_device.open();
+  console.log('Starting device - ', ed_device);
 
   // The heater and mister are powerful,
   // doing regulation in intervals.
-  if (device === ed_fanheater || device === ed_mister) {
+  if (ed_device === ed_fanheater || ed_device === ed_mister) {
     setTimeout(() => {
       stopDevice(ed_fanheater);
       stopDevice(ed_mister);
@@ -238,10 +238,10 @@ function startDevice(device) {
 }
 
 // Stop a regulating device
-function stopDevice(device) {
+function stopDevice(ed_device) {
   led.stop().off();
-  device.close();
-  console.log('Stopping device - ', device);
+  ed_device.close();
+  console.log('Stopping device - ', ed_device);
 }
 
 // Start regulatory actions and light up LED diode
