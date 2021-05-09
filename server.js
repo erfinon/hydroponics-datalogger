@@ -38,13 +38,15 @@ mcu.once('ready', () => {
   console.log('Microcontroller ready!');
   mcu.isReady = true;
 
-  // Pulse LED diode to indicate the microcontroller is running
-  led = new five.Led(config.sensorPins.led);
-  led.pulse(250);
-  // Stop and turn off the LED pulse after 5seconds
-  mcu.wait(5000, () => {
-    led.stop().off();
-  });
+  // Initialize relays
+  pump_nutrients1 = new five.Relay(config.relayPins.pump_nutrients1);
+  pump_nutrients2 = new five.Relay(config.relayPins.pump_nutrients2);
+  pump_phup = new five.Relay(config.relayPins.pump_phup);
+  pump_phdown = new five.Relay(config.relayPins.pump_phdown);
+  ed_fanheater = new five.Relay(config.relayPins.ed_fanheater);
+  ed_fancooler = new five.Relay(config.relayPins.ed_fancooler);
+  ed_heatingpad = new five.Relay(config.relayPins.ed_heatingpad);
+  ed_mister = new five.Relay(config.relayPins.ed_mister);
 
   // Initialize sensors
   // Environment light sensor
@@ -74,15 +76,21 @@ mcu.once('ready', () => {
     freq: 1000,
   });
 
-  // Initialize relays
-  pump_nutrients1 = new five.Relay(config.relayPins.pump_nutrients1);
-  pump_nutrients2 = new five.Relay(config.relayPins.pump_nutrients2);
-  pump_phup = new five.Relay(config.relayPins.pump_phup);
-  pump_phdown = new five.Relay(config.relayPins.pump_phdown);
-  ed_fanheater = new five.Relay(config.relayPins.ed_fanheater);
-  ed_fancooler = new five.Relay(config.relayPins.ed_fancooler);
-  ed_heatingpad = new five.Relay(config.relayPins.ed_heatingpad);
-  ed_mister = new five.Relay(config.relayPins.ed_mister);
+  // Pulse LED diode to indicate the microcontroller is running
+  led = new five.Led(config.sensorPins.led);
+  led.pulse(250);
+  setTimeout(() => {
+    led.stop().off();
+  }, 5000)
+
+}).on('exit', () => {
+  led.stop().off();
+  ed_fanheater.close();
+  ed_fancooler.close();
+  ed_heatingpad.close();
+  ed_mister.close();
+  console.log('Dropping connection to microcontroller.');
+});
 
 }).on('error', (err) => {
   console.log('Unable to connect with microcontroller.');
@@ -206,20 +214,20 @@ function regulateActions(env_light, env_temp, env_humidity, water_temp) {
   // Fan heater
   if (env_temp <= config.thresholdValues.env_temp.min) {
     led.pulse(1000);
-    ed_fanheater.on();
+    ed_fanheater.close();
   }
 
   // Ultrasonic mister
   if (env_humidity <= config.thresholdValues.env_humidity.min) {
     led.pulse(1000);
-    ed_mister.on();
+    ed_mister.close();
   }
 
   // The fan heater and mister are powerful devices,
   // a timeout i used to prevent them from staying on for too long.
   setTimeout(() => {
-    ed_fanheater.off();
-    ed_mister.off();
+    ed_fanheater.close();
+    ed_mister.close();
     led.stop().off();
   }, 15000)
 
@@ -227,34 +235,34 @@ function regulateActions(env_light, env_temp, env_humidity, water_temp) {
   // Fan cooler
   if (env_humidity >= config.thresholdValues.env_humidity.max || env_temp >= config.thresholdValues.env_temp.max) {
     led.pulse(1000);
-    ed_fancooler.on();
+    ed_fancooler.open();
   } else {
     led.stop().off();
-    ed_fancooler.off();
+    ed_fancooler.close();
   }
 
   // Water temperature
   // Turn heating pad on if too cold.
   if (water_temp <= config.thresholdValues.water_temp.min) {
     led.pulse(1000);
-    ed_heatingpad.on();
+    ed_heatingpad.open();
   } else {
     led.stop().off();
-    ed_heatingpad.off();
+    ed_heatingpad.close();
   }
 
   /*
   // Water electrical conductivity
   if (water_ec < config.thresholdValues.water_ec.min) {
-    pump_nutrients1.open()
-    setTimeout(pump_nutrients1.close(), 1000)
-    pump_nutrients2.open()
-    setTimeout(pump_nutrients2.close(), 1000)
+    pump_nutrients1.open();
+    setTimeout(pump_nutrients1.close(), 1000);
+    pump_nutrients2.open();
+    setTimeout(pump_nutrients2.close(), 1000);
   }
 
   // Water pH
   if (water_ph < config.thresholdValues.water_ph.min) {
-    pump_phup.open()
+    pump_phup.open();
     setTimeout(pump_phup.close(), 500)
   }
   if (water_ph > config.thresholdValues.water_ph.max) {
