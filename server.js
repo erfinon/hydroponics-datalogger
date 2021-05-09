@@ -203,36 +203,25 @@ function saveSensorData(env_light, env_temp, env_humidity, water_temp, water_ec,
 // Start regulatory actions and light up LED diode
 // if threshold values are exceeded
 function regulateActions(env_light, env_temp, env_humidity, water_temp) {
-  led.stop().off();
   // Fan heater
   if (env_temp <= config.thresholdValues.env_temp.min) {
     led.pulse(1000);
     ed_fanheater.open();
-    setTimeout(() => {
-      ed_fanheater.close()
-    }, 15000)
   }
 
   // Fan cooler
-  if (env_humidity >= config.thresholdValues.env_humidity.max) {
+  if (env_humidity >= config.thresholdValues.env_humidity.max || env_temp >= config.thresholdValues.env_temp.max) {
     led.pulse(1000);
     ed_fancooler.open();
-    setTimeout(() => {
-      ed_fancooler.close()
-    }, 15000)
-  }
-  if (env_temp >= config.thresholdValues.env_temp.max) {
-    ed_fancooler.open();
-    led.pulse(1000);
+  } else {
+    led.stop().off();
+    ed_fancooler.close();
   }
 
   // Ultrasonic mister
   if (env_humidity <= config.thresholdValues.env_humidity.min) {
     led.pulse(1000);
     ed_mister.open();
-    setTimeout(() => {
-      ed_mister.close();
-    }, 15000)
   }
 
   // Water temperature
@@ -240,10 +229,18 @@ function regulateActions(env_light, env_temp, env_humidity, water_temp) {
   if (water_temp <= config.thresholdValues.water_temp.min) {
     led.pulse(1000);
     ed_heatingpad.open();
-    setTimeout(() => {
-      ed_heatingpad.close();
-    }, 15000)
+  } else {
+    led.stop().off();
+    ed_heatingpad.close();
   }
+
+  // The fan heater and mister are powerful devices,
+  // a timeout i used to prevent them from staying on for too long.
+  setTimeout(() => {
+    ed_fanheater.close();
+    ed_mister.close();
+    led.stop().off();
+  }, 15000)
 
   /*
   // Water electrical conductivity
