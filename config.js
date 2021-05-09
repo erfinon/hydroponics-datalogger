@@ -29,7 +29,7 @@ module.exports = {
     ed_fanheater: 8,
     ed_fancooler: 9,
     ed_heatingpad: 10,
-    ed_mister: 12,
+    ed_mister: 11,
   },
   thresholdValues: {
     env_temp: {
