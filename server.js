@@ -251,11 +251,6 @@ function regulateEnvironment(env_temp, env_humidity, water_temp) {
     startDevice(ed_mister);
   }
 
-  setTimeout(() => {
-    stopDevice(ed_fanheater);
-    stopDevice(ed_mister);
-  }, 15000)
-
   // Fan cooler
   if (env_humidity >= config.thresholdValues.env_humidity.max || env_temp >= config.thresholdValues.env_temp.max) {
     startDevice(ed_fancooler);
