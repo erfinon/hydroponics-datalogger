@@ -211,6 +211,7 @@ function saveSensorData(env_light, env_temp, env_humidity, water_temp, water_ec,
 // Start regulatory actions and light up LED diode
 // if threshold values are exceeded
 function regulateActions(env_temp, env_humidity, water_temp) {
+  stopAllDevices();
   // Fan heater
   if (env_temp < config.thresholdValues.env_temp.min) {
     led.pulse(1000);
@@ -240,13 +241,6 @@ function regulateActions(env_temp, env_humidity, water_temp) {
     console.log('Regulating water temperature - ', water_temp);
   }
 
-  // The fan heater and mister are powerful devices,
-  // a timeout i used to prevent them from staying on for too long.
-  setTimeout(() => {
-    stopDevice(ed_fanheater);
-    stopDevice(ed_mister);
-  }, 10000)
-
   /*
   // Water electrical conductivity
   if (water_ec < config.thresholdValues.water_ec.min) {
@@ -273,6 +267,15 @@ function stopDevice(device) {
   led.stop().off();
   device.close();
   console.log('Stopping device - ', device);
+}
+
+function stopAllDevices() {
+  led.stop().off();
+  ed_fanheater.close();
+  ed_fancooler.close();
+  ed_heatingpad.close();
+  ed_mister.close();
+  console.log('Stopping device all devices);
 }
 
 // Emit sensor data and regulate grow environment on 60s intervals
