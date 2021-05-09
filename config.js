@@ -1,6 +1,6 @@
 module.exports = {
   mcu: {
-    port: '/dev/ttyUSB0',
+    port: '/dev/ttyACM0',
   },
   express: {
     port: 4000,
@@ -17,7 +17,7 @@ module.exports = {
   sensorPins: {
     led: 3,
     env_light: 'A3',
-    water_temp: 2,
+    water_temp: 12,
     water_ec: 'A0',
     water_ph: 'A1',
   },
