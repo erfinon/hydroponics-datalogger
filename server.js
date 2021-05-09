@@ -39,18 +39,38 @@ mcu.once('ready', () => {
   mcu.isReady = true;
 
   // Initialize relays
-  pump_nutrients1 = new five.Relay(config.relayPins.pump_nutrients1);
-  pump_nutrients2 = new five.Relay(config.relayPins.pump_nutrients2);
-  pump_phup = new five.Relay(config.relayPins.pump_phup);
-  pump_phdown = new five.Relay(config.relayPins.pump_phdown);
-  ed_fanheater = new five.Relay(config.relayPins.ed_fanheater);
-  ed_fancooler = new five.Relay(config.relayPins.ed_fancooler);
-  ed_heatingpad = new five.Relay(config.relayPins.ed_heatingpad);
-  ed_mister = new five.Relay(config.relayPins.ed_mister);
-  ed_fanheater.close();
-  ed_fancooler.close();
-  ed_heatingpad.close();
-  ed_mister.close();
+  pump_nutrients1 = new five.Relay({
+    pin: config.relayPins.pump_nutrients1,
+    isOn: false,
+  });
+  pump_nutrients2 = new five.Relay({
+    pin: config.relayPins.pump_nutrients2,
+    isOn: false,
+  });
+  pump_phup = new five.Relay({
+    pin: config.relayPins.pump_phup,
+    isOn: false,
+  });
+  pump_phdown = new five.Relay({
+    pin: config.relayPins.pump_phdown,
+    isOn: false,
+  });
+  ed_fanheater = new five.Relay({
+    pin: config.relayPins.ed_fanheater,
+    isOn: false,
+  });
+  ed_fancooler = new five.Relay({
+    pin: config.relayPins.ed_fancooler,
+    isOn: false,
+  });
+  ed_heatingpad = new five.Relay({
+    pin: config.relayPins.ed_heatingpad,
+    isOn: false,
+  });
+  ed_mister = new five.Relay({
+    pin: config.relayPins.ed_mister,
+    isOn: false,
+  });
 
   // Initialize sensors
   // Environment light sensor
