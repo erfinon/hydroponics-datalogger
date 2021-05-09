@@ -318,10 +318,7 @@ setInterval(() => {
     console.log('Air climate: ', getEnvLight(sensorEnvLight), getEnvTemp(sensorEnvTempRH), getEnvHumidity(sensorEnvTempRH));
     console.log('Water quality: ', getWaterTemp(sensorWaterTemp), getWaterEC(sensorWaterEC), getWaterPH(sensorWaterPH));
   }
-}, 300000);
 
-// Regulate grow environment on 60s intervals
-setInterval(() => {
   regulateEnvironment(getEnvTemp(sensorEnvTempRH), getEnvHumidity(sensorEnvTempRH), getWaterTemp(sensorWaterTemp));
 }, 30000);
 
