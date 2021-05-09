@@ -205,12 +205,9 @@ function saveSensorData(env_light, env_temp, env_humidity, water_temp, water_ec,
 function regulateActions(env_light, env_temp, env_humidity, water_temp) {
   led.stop().off();
   // Fan heater
-  if (env_temp >= config.thresholdValues.env_temp.min) {
-    ed_fanheater.close();
-  }
-  if (env_temp < config.thresholdValues.env_temp.min) {
-    ed_fanheater.open();
+  if (env_temp <= config.thresholdValues.env_temp.min) {
     led.pulse(1000);
+    ed_fanheater.open();
     setTimeout(() => {
       ed_fanheater.close()
     }, 15000)
@@ -218,8 +215,8 @@ function regulateActions(env_light, env_temp, env_humidity, water_temp) {
 
   // Fan cooler
   if (env_humidity >= config.thresholdValues.env_humidity.max) {
-    ed_fancooler.open();
     led.pulse(1000);
+    ed_fancooler.open();
     setTimeout(() => {
       ed_fancooler.close()
     }, 15000)
@@ -231,8 +228,8 @@ function regulateActions(env_light, env_temp, env_humidity, water_temp) {
 
   // Ultrasonic mister
   if (env_humidity <= config.thresholdValues.env_humidity.min) {
-    ed_mister.open();
     led.pulse(1000);
+    ed_mister.open();
     setTimeout(() => {
       ed_mister.close()
     }, 15000)
@@ -241,8 +238,8 @@ function regulateActions(env_light, env_temp, env_humidity, water_temp) {
   // Water temperature
   // Turn heating pad on if too cold.
   if (water_temp < config.thresholdValues.water_temp.min) {
-    ed_heatingpad.open();
     led.pulse(1000);
+    ed_heatingpad.open();
     setTimeout(() => {
       ed_heatingpad.close()
     }, 15000)
