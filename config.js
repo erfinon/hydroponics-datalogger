@@ -33,7 +33,7 @@ module.exports = {
   },
   thresholdValues: {
     env_temp: {
-      min: '21',
+      min: '20',
       max: '26',
     },
     env_humidity: {

@@ -210,30 +210,34 @@ function saveSensorData(env_light, env_temp, env_humidity, water_temp, water_ec,
 
 // Start regulatory actions and light up LED diode
 // if threshold values are exceeded
-function regulateActions(env_light, env_temp, env_humidity, water_temp) {
+function regulateActions(env_temp, env_humidity, water_temp) {
   // Fan heater
-  if (env_temp <= config.thresholdValues.env_temp.min) {
+  if (env_temp < config.thresholdValues.env_temp.min) {
     led.pulse(1000);
     ed_fanheater.open();
+    console.log('Regulating air heater - ', env_temp);
   }
 
   // Ultrasonic mister
-  if (env_humidity <= config.thresholdValues.env_humidity.min) {
+  if (env_humidity < config.thresholdValues.env_humidity.min) {
     led.pulse(1000);
     ed_mister.open();
+    console.log('Regulating mister - ', env_humidity);
   }
 
   // Fan cooler
-  if (env_humidity >= config.thresholdValues.env_humidity.max || env_temp >= config.thresholdValues.env_temp.max) {
+  if (env_humidity > config.thresholdValues.env_humidity.max || env_temp > config.thresholdValues.env_temp.max) {
     led.pulse(1000);
     ed_fancooler.open();
+    console.log('Regulating air cooler - ', env_humidity, env_temp);
   }
 
   // Water temperature
   // Turn heating pad on if too cold.
-  if (water_temp <= config.thresholdValues.water_temp.min) {
+  if (water_temp < config.thresholdValues.water_temp.min) {
     led.pulse(1000);
     ed_heatingpad.open();
+    console.log('Regulating water temperature - ', water_temp);
   }
 
   // The fan heater and mister are powerful devices,
@@ -268,6 +272,7 @@ function regulateActions(env_light, env_temp, env_humidity, water_temp) {
 function stopDevice(device) {
   led.stop().off();
   device.close();
+  console.log('Stopping device - ', device);
 }
 
 // Emit sensor data and regulate grow environment on 60s intervals
@@ -289,7 +294,7 @@ setInterval(() => {
     console.log('Water quality: ', rt_water_temp, rt_water_ec, rt_water_ph);
   }
 
-  regulateActions(rt_env_light, rt_env_temp, rt_env_humidity, rt_water_temp);
+  regulateActions(rt_env_temp, rt_env_humidity, rt_water_temp);
 }, 30000);
 
 // Express data routes
