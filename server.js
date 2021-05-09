@@ -283,7 +283,7 @@ setInterval(() => {
   }
 
   regulateActions(rt_env_light, rt_env_temp, rt_env_humidity, rt_water_temp, rt_water_ec, rt_water_ph);
-}, 60000);
+}, 30000);
 
 // Express data routes
 // Realtime sensor data
