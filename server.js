@@ -18,8 +18,8 @@ console.log(`Listening on port ${config.express.port}`);
 
 /*
  * Microcontroller actions:
- * Connect to microcontroller, initialize sensors
- * and saves data to InfluxDB if enabled on intervals.
+ * Connect to microcontroller, initialize relays and sensors,
+ * save data to InfluxDB if enabled and regulate environment on intervals.
  * Blinks a LED diode to indicate successful connection.
  */
 const five = require('johnny-five');
@@ -92,7 +92,7 @@ mcu.once('ready', () => {
     led.stop().off();
   }, 5000)
 
-// Exit handler for mcu
+// Exit handler for microcontroller
 }).on('exit', () => {
   led.stop().off();
   pump_nutrients1.close();
@@ -104,22 +104,26 @@ mcu.once('ready', () => {
   ed_heatingpad.close();
   ed_mister.close();
   console.log('Dropping connection to microcontroller.');
-// Error handler for mcu
+// Error handler for microcontroller
 }).on('error', (err) => {
   console.log('Unable to connect with microcontroller.');
   console.log(err);
 });
 
 // Poll sensors for data
+// Light
 function getEnvLight(sensorEnvLight) {
   return Math.round(sensorEnvLight.value / 1024 * 100);
 }
+// Temperature
 function getEnvTemp(sensorEnvTempRH) {
   return Math.round(sensorEnvTempRH.thermometer.celsius);
 }
+// Humidity
 function getEnvHumidity(sensorEnvTempRH) {
   return Math.round(sensorEnvTempRH.hygrometer.relativeHumidity);
 }
+// Water temperature
 function getWaterTemp(sensorWaterTemp) {
   return Math.round(sensorWaterTemp.celsius);
 }
@@ -222,7 +226,7 @@ function saveSensorData(env_light, env_temp, env_humidity, water_temp, water_ec,
 }
 
 // Start regulatory actions and light up LED diode
-// if threshold values are exceeded
+// if threshold values are exceeded.
 function regulateEnvironment(env_temp, env_humidity, water_temp) {
   // Fan heater
   if (env_temp <= config.thresholdValues.env_temp.min) {
@@ -236,6 +240,8 @@ function regulateEnvironment(env_temp, env_humidity, water_temp) {
     ed_mister.open();
   }
 
+  // Heater is powerful and mister can destroy sensors,
+  // turn these off after 15s and do incremental gains.
   setTimeout(() => {
     led.stop().off();
     ed_fanheater.close();
@@ -259,51 +265,66 @@ function regulateEnvironment(env_temp, env_humidity, water_temp) {
     led.stop().off();
     ed_heatingpad.close();
   }
-  /*
 
-// Water electrical conductivity
-if (water_ec < config.thresholdValues.water_ec.min) {
-  pump_nutrients1.open();
-  setTimeout(pump_nutrients1.close(), 1000);
-  pump_nutrients2.open();
-  setTimeout(pump_nutrients2.close(), 1000);
-}
+  // Nutrient pumps
+  if (water_ec < config.thresholdValues.water_ec.min) {
+    led.pulse(1000);
+    pump_nutrients1.open();
+    pump_nutrients2.open();
 
-// Water pH
-if (water_ph < config.thresholdValues.water_ph.min) {
-  pump_phup.open();
-  setTimeout(pump_phup.close(), 500)
-}
-if (water_ph > config.thresholdValues.water_ph.max) {
-  pump_phdown.open()
-  setTimeout(pump_phdown.close(), 500)
-}
-
- */
-}
-
-
-// Emit sensor data and regulate grow environment on 60s intervals
-setInterval(() => {
-  let rt_env_light = getEnvLight(sensorEnvLight);
-  let rt_env_temp = getEnvTemp(sensorEnvTempRH);
-  let rt_env_humidity = getEnvHumidity(sensorEnvTempRH);
-  let rt_water_temp = getWaterTemp(sensorWaterTemp);
-  let rt_water_ec = getWaterEC(sensorWaterEC);
-  let rt_water_ph = getWaterPH(sensorWaterPH);
-
-  // Save to database if enabled in config
-  if (config.influxdb.enabled === 1) {
-    console.log('Air climate: ', rt_env_light, rt_env_temp, rt_env_humidity);
-    console.log('Water quality: ', rt_water_temp, rt_water_ec, rt_water_ph);
-    saveSensorData(rt_env_light, rt_env_temp, rt_env_humidity, rt_water_temp, rt_water_ec, rt_water_ph);
-  } else {
-    console.log('Air climate: ', rt_env_light, rt_env_temp, rt_env_humidity);
-    console.log('Water quality: ', rt_water_temp, rt_water_ec, rt_water_ph);
+    // Do 1s incremental gains on pump regulation.
+    setTimeout(() => {
+      led.stop().off();
+      pump_nutrients1.close();
+      pump_nutrients2.close();
+    }, 1000)
   }
 
-  regulateEnvironment(rt_env_temp, rt_env_humidity, rt_water_temp);
+  // PH pumps
+  if (water_ph < config.thresholdValues.water_ph.min) {
+    led.pulse(1000);
+    pump_phup.open();
+
+    // Do 0.5s incremental gains on pump regulation.
+    setTimeout(() => {
+      led.stop().off();
+      pump_phup.close();
+    }, 500)
+  }
+
+  if (water_ph > config.thresholdValues.water_ph.max) {
+    led.pulse(1000);
+    pump_phdown.open()
+
+    // Do 0.5s incremental gains on pump regulation.
+    setTimeout(() => {
+      led.stop().off();
+      pump_phdown.close();
+    }, 1000)
+  }
+}
+
+
+// Emit sensor data on 5m intervals
+setInterval(() => {
+  // Save to database if enabled in config
+  if (config.influxdb.enabled === 1) {
+    console.log('Air climate: ', getEnvLight(sensorEnvLight), getEnvTemp(sensorEnvTempRH), getEnvHumidity(sensorEnvTempRH));
+    console.log('Water quality: ', getWaterTemp(sensorWaterTemp), getWaterEC(sensorWaterEC), getWaterPH(sensorWaterPH));
+
+    saveSensorData(getEnvLight(sensorEnvLight), getEnvTemp(sensorEnvTempRH), getEnvHumidity(sensorEnvTempRH),
+      getWaterTemp(sensorWaterTemp), getWaterEC(sensorWaterEC), getWaterPH(sensorWaterPH));
+  } else {
+    console.log('Air climate: ', getEnvLight(sensorEnvLight), getEnvTemp(sensorEnvTempRH), getEnvHumidity(sensorEnvTempRH));
+    console.log('Water quality: ', getWaterTemp(sensorWaterTemp), getWaterEC(sensorWaterEC), getWaterPH(sensorWaterPH));
+  }
+}, 300000);
+
+// Regulate grow environment on 60s intervals
+setInterval(() => {
+  regulateEnvironment(getEnvTemp(sensorEnvTempRH), getEnvHumidity(sensorEnvTempRH), getWaterTemp(sensorWaterTemp));
 }, 30000);
+
 
 // Express data routes
 // Realtime sensor data
@@ -393,8 +414,6 @@ if (config.influxdb.enabled === 1) {
     });
   });
 }
-
-// App exit handler
 
 module.exports = {
   app,
