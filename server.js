@@ -275,7 +275,7 @@ function stopAllDevices() {
   ed_fancooler.close();
   ed_heatingpad.close();
   ed_mister.close();
-  console.log('Stopping device all devices);
+  console.log('Stopping device all devices');
 }
 
 // Emit sensor data and regulate grow environment on 60s intervals
