@@ -86,10 +86,10 @@ mcu.once('ready', () => {
 // Exit handler for mcu
 }).on('exit', () => {
   led.stop().off();
-  ed_fanheater.close();
-  ed_fancooler.close();
-  ed_heatingpad.close();
-  ed_mister.close();
+  ed_fanheater.open();
+  ed_fancooler.open();
+  ed_heatingpad.open();
+  ed_mister.open();
   console.log('Dropping connection to microcontroller.');
 // Error handler for mcu
 }).on('error', (err) => {
@@ -223,15 +223,6 @@ function regulateActions(env_light, env_temp, env_humidity, water_temp) {
     ed_mister.open();
   }
 
-  // The fan heater and mister are powerful devices,
-  // a timeout i used to prevent them from staying on for too long.
-  setTimeout(() => {
-    ed_fanheater.close();
-    ed_mister.close();
-    led.stop().off();
-  }, 15000)
-
-
   // Fan cooler
   if (env_humidity >= config.thresholdValues.env_humidity.max || env_temp >= config.thresholdValues.env_temp.max) {
     led.pulse(1000);
@@ -244,6 +235,13 @@ function regulateActions(env_light, env_temp, env_humidity, water_temp) {
     led.pulse(1000);
     ed_heatingpad.open();
   }
+
+  // The fan heater and mister are powerful devices,
+  // a timeout i used to prevent them from staying on for too long.
+  setTimeout(() => {
+    stopDevice(ed_fanheater);
+    stopDevice(mister);
+  }, 10000)
 
   /*
   // Water electrical conductivity
@@ -265,6 +263,11 @@ function regulateActions(env_light, env_temp, env_humidity, water_temp) {
   }
 
    */
+}
+
+function stopDevice(device) {
+  led.stop().off();
+  device.close();
 }
 
 // Emit sensor data and regulate grow environment on 60s intervals
