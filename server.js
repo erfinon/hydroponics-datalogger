@@ -202,42 +202,42 @@ function saveSensorData(env_light, env_temp, env_humidity, water_temp, water_ec,
 
 // Start regulatory actions and light up LED diode
 // if threshold values are exceeded
-function regulateActions(env_light, env_temp, env_humidity, water_temp, water_ec, water_ph) {
+function regulateActions(env_light, env_temp, env_humidity, water_temp) {
   led.stop().off();
   // Fan heater
   if (env_temp >= config.thresholdValues.env_temp.min) {
     ed_fanheater.close();
   }
   if (env_temp < config.thresholdValues.env_temp.min) {
-    led.pulse(1000);
     ed_fanheater.open();
+    led.pulse(1000);
     setTimeout(ed_fanheater.close(), 15000)
   }
 
   // Fan cooler
   if (env_humidity >= config.thresholdValues.env_humidity.max) {
-    led.pulse(1000);
     ed_fancooler.open();
-    setTimeout(ed_fancooler.close(), 20000)
+    led.pulse(1000);
+    setTimeout(ed_fancooler.close(), 15000)
   }
   if (env_temp >= config.thresholdValues.env_temp.max) {
-    led.pulse(1000);
     ed_fancooler.open();
+    led.pulse(1000);
   }
 
   // Ultrasonic mister
   if (env_humidity <= config.thresholdValues.env_humidity.min) {
-    led.pulse(1000);
     ed_mister.open();
-    setTimeout(ed_mister.close(), 20000)
+    led.pulse(1000);
+    setTimeout(ed_mister.close(), 15000)
   }
 
   // Water temperature
   // Turn heating pad on if too cold.
   if (water_temp < config.thresholdValues.water_temp.min) {
-    led.pulse(1000);
     ed_heatingpad.open();
-    setTimeout(ed_heatingpad.close(), 20000)
+    led.pulse(1000);
+    setTimeout(ed_heatingpad.close(), 15000)
   }
 
   /*
@@ -271,18 +271,17 @@ setInterval(() => {
   let rt_water_ec = getWaterEC(sensorWaterEC);
   let rt_water_ph = getWaterPH(sensorWaterPH);
 
-  console.log('Air climate: ', rt_env_light, rt_env_temp, rt_env_humidity);
-  console.log('Water quality: ', rt_water_temp, rt_water_ec, rt_water_ph);
-
   // Save to database if enabled in config
   if (config.influxdb.enabled === 1) {
+    console.log('Air climate: ', rt_env_light, rt_env_temp, rt_env_humidity);
+    console.log('Water quality: ', rt_water_temp, rt_water_ec, rt_water_ph);
     saveSensorData(rt_env_light, rt_env_temp, rt_env_humidity, rt_water_temp, rt_water_ec, rt_water_ph);
   } else {
     console.log('Air climate: ', rt_env_light, rt_env_temp, rt_env_humidity);
     console.log('Water quality: ', rt_water_temp, rt_water_ec, rt_water_ph);
   }
 
-  regulateActions(rt_env_light, rt_env_temp, rt_env_humidity, rt_water_temp, rt_water_ec, rt_water_ph);
+  regulateActions(rt_env_light, rt_env_temp, rt_env_humidity, rt_water_temp);
 }, 30000);
 
 // Express data routes
