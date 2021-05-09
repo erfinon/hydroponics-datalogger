@@ -211,26 +211,32 @@ function saveSensorData(env_light, env_temp, env_humidity, water_temp, water_ec,
 // Start regulatory actions and light up LED diode
 // if threshold values are exceeded
 function regulateActions(env_temp, env_humidity, water_temp) {
-  stopAllDevices();
   // Fan heater
-  if (env_temp < config.thresholdValues.env_temp.min) {
+  if (env_temp <= config.thresholdValues.env_temp.min) {
     led.pulse(1000);
     ed_fanheater.close();
     console.log('Regulating air heater - ', env_temp);
   }
 
   // Ultrasonic mister
-  if (env_humidity < config.thresholdValues.env_humidity.min) {
+  if (env_humidity <= config.thresholdValues.env_humidity.min) {
     led.pulse(1000);
     ed_mister.close();
     console.log('Regulating mister - ', env_humidity);
   }
 
+  setTimeout(() => {
+    ed_fanheater.open();
+    ed_mister.open();
+  }, 15000)
+
   // Fan cooler
-  if (env_humidity > config.thresholdValues.env_humidity.max || env_temp > config.thresholdValues.env_temp.max) {
+  if (env_humidity >= config.thresholdValues.env_humidity.max || env_temp >= config.thresholdValues.env_temp.max) {
     led.pulse(1000);
     ed_fancooler.close();
     console.log('Regulating air cooler - ', env_humidity, env_temp);
+  } else {
+    ed_fancooler.open();
   }
 
   // Water temperature
@@ -239,6 +245,8 @@ function regulateActions(env_temp, env_humidity, water_temp) {
     led.pulse(1000);
     ed_heatingpad.close();
     console.log('Regulating water temperature - ', water_temp);
+  } else {
+    ed_heatingpad.open();
   }
 
   /*
@@ -275,7 +283,7 @@ function stopAllDevices() {
   ed_fancooler.open();
   ed_heatingpad.open();
   ed_mister.open();
-  console.log('Stopping device all devices');
+  console.log('Stopping all devices');
 }
 
 // Emit sensor data and regulate grow environment on 60s intervals
