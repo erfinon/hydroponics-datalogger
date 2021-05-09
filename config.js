@@ -17,7 +17,7 @@ module.exports = {
   sensorPins: {
     led: 3,
     env_light: 'A3',
-    water_temp: 2,
+    water_temp: 12,
     water_ec: 'A0',
     water_ph: 'A1',
   },
@@ -34,7 +34,7 @@ module.exports = {
   thresholdValues: {
     env_temp: {
       min: '20',
-      max: '26',
+      max: '27',
     },
     env_humidity: {
       min: '40',
