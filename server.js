@@ -218,7 +218,7 @@ function regulateActions(env_light, env_temp, env_humidity, water_temp, water_ec
   if (env_humidity >= config.thresholdValues.env_humidity.max) {
     led.pulse(1000);
     ed_fancooler.open();
-    setTimeout(ed_fancooler.close(), 60000)
+    setTimeout(ed_fancooler.close(), 20000)
   }
   if (env_temp >= config.thresholdValues.env_temp.max) {
     led.pulse(1000);
@@ -229,7 +229,7 @@ function regulateActions(env_light, env_temp, env_humidity, water_temp, water_ec
   if (env_humidity <= config.thresholdValues.env_humidity.min) {
     led.pulse(1000);
     ed_mister.open();
-    setTimeout(ed_mister.close(), 30000)
+    setTimeout(ed_mister.close(), 20000)
   }
 
   // Water temperature
@@ -237,7 +237,7 @@ function regulateActions(env_light, env_temp, env_humidity, water_temp, water_ec
   if (water_temp < config.thresholdValues.water_temp.min) {
     led.pulse(1000);
     ed_heatingpad.open();
-    setTimeout(ed_heatingpad.close(), 60000)
+    setTimeout(ed_heatingpad.close(), 20000)
   }
 
   /*
