@@ -229,12 +229,6 @@ function startDevice(ed_device) {
 
   // The heater and mister are powerful,
   // doing regulation in intervals.
-  if (ed_device === ed_fanheater || ed_device === ed_mister) {
-    setTimeout(() => {
-      stopDevice(ed_fanheater);
-      stopDevice(ed_mister);
-    }, 15000)
-  }
 }
 
 // Stop a regulating device
@@ -256,6 +250,11 @@ function regulateEnvironment(env_temp, env_humidity, water_temp) {
   if (env_humidity <= config.thresholdValues.env_humidity.min) {
     startDevice(ed_mister);
   }
+
+  setTimeout(() => {
+    stopDevice(ed_fanheater);
+    stopDevice(ed_mister);
+  }, 15000)
 
   // Fan cooler
   if (env_humidity >= config.thresholdValues.env_humidity.max || env_temp >= config.thresholdValues.env_temp.max) {
