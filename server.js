@@ -39,38 +39,23 @@ mcu.once('ready', () => {
   mcu.isReady = true;
 
   // Initialize relays
-  pump_nutrients1 = new five.Relay({
-    pin: config.relayPins.pump_nutrients1,
-    isOn: false,
-  });
-  pump_nutrients2 = new five.Relay({
-    pin: config.relayPins.pump_nutrients2,
-    isOn: false,
-  });
-  pump_phup = new five.Relay({
-    pin: config.relayPins.pump_phup,
-    isOn: false,
-  });
-  pump_phdown = new five.Relay({
-    pin: config.relayPins.pump_phdown,
-    isOn: false,
-  });
-  ed_fanheater = new five.Relay({
-    pin: config.relayPins.ed_fanheater,
-    isOn: false,
-  });
-  ed_fancooler = new five.Relay({
-    pin: config.relayPins.ed_fancooler,
-    isOn: false,
-  });
-  ed_heatingpad = new five.Relay({
-    pin: config.relayPins.ed_heatingpad,
-    isOn: false,
-  });
-  ed_mister = new five.Relay({
-    pin: config.relayPins.ed_mister,
-    isOn: false,
-  });
+  pump_nutrients1 = new five.Relay(config.relayPins.pump_nutrients1);
+  pump_nutrients2 = new five.Relay(config.relayPins.pump_nutrients2);
+  pump_phup = new five.Relay(config.relayPins.pump_phup);
+  pump_phdown = new five.Relay(config.relayPins.pump_phdown);
+  ed_fanheater = new five.Relay(config.relayPins.ed_fanheater);
+  ed_fancooler = new five.Relay(config.relayPins.ed_fancooler);
+  ed_heatingpad = new five.Relay(config.relayPins.ed_heatingpad);
+  ed_mister = new five.Relay(config.relayPins.ed_mister);
+  // Make sure the relays are turned off
+  pump_nutrients1.close();
+  pump_nutrients2.close();
+  pump_phup.close();
+  pump_phdown.close();
+  ed_fanheater.close();
+  ed_fancooler.close();
+  ed_heatingpad.close();
+  ed_mister.close();
 
   // Initialize sensors
   // Environment light sensor
@@ -110,6 +95,10 @@ mcu.once('ready', () => {
 // Exit handler for mcu
 }).on('exit', () => {
   led.stop().off();
+  pump_nutrients1.close();
+  pump_nutrients2.close();
+  pump_phup.close();
+  pump_phdown.close();
   ed_fanheater.close();
   ed_fancooler.close();
   ed_heatingpad.close();
@@ -232,84 +221,56 @@ function saveSensorData(env_light, env_temp, env_humidity, water_temp, water_ec,
     })
 }
 
+// Start a regulating device
+function startDevice(device) {
+  led.pulse(1000);
+  device.open();
+  console.log('Starting device - ', device);
+
+  // The heater and mister are powerful,
+  // doing regulation in intervals.
+  if (device === ed_fanheater || device === ed_mister) {
+    setTimeout(() => {
+      stopDevice(ed_fanheater);
+      stopDevice(ed_mister);
+    }, 15000)
+  }
+}
+
+// Stop a regulating device
+function stopDevice(device) {
+  led.stop().off();
+  device.close();
+  console.log('Stopping device - ', device);
+}
+
 // Start regulatory actions and light up LED diode
 // if threshold values are exceeded
-function regulateActions(env_temp, env_humidity, water_temp) {
+function regulateEnvironment(env_temp, env_humidity, water_temp) {
   // Fan heater
   if (env_temp <= config.thresholdValues.env_temp.min) {
-    led.pulse(1000);
-    ed_fanheater.open();
-    console.log('Regulating air heater - ', env_temp);
+    startDevice(ed_fanheater);
   }
 
   // Ultrasonic mister
   if (env_humidity <= config.thresholdValues.env_humidity.min) {
-    led.pulse(1000);
-    ed_mister.open();
-    console.log('Regulating mister - ', env_humidity);
+    startDevice(ed_mister);
   }
-
-  setTimeout(() => {
-    ed_fanheater.close();
-    ed_mister.close();
-  }, 15000)
 
   // Fan cooler
   if (env_humidity >= config.thresholdValues.env_humidity.max || env_temp >= config.thresholdValues.env_temp.max) {
-    led.pulse(1000);
-    ed_fancooler.open();
-    console.log('Regulating air cooler - ', env_humidity, env_temp);
+    startDevice(ed_fancooler);
   } else {
-    ed_fancooler.close();
+    stopDevice(ed_fancooler);
   }
 
-  // Water temperature
-  // Turn heating pad on if too cold.
+  // Heating pad
   if (water_temp < config.thresholdValues.water_temp.min) {
-    led.pulse(1000);
-    ed_heatingpad.open();
-    console.log('Regulating water temperature - ', water_temp);
+    startDevice(ed_heatingpad);
   } else {
-    ed_heatingpad.close();
+    stopDevice(ed_heatingpad);
   }
   /*
-// Fan heater
-if (env_temp <= config.thresholdValues.env_temp.min) {
-  led.pulse(1000);
-  ed_fanheater.close();
-  console.log('Regulating air heater - ', env_temp);
-}
-
-// Ultrasonic mister
-if (env_humidity <= config.thresholdValues.env_humidity.min) {
-  led.pulse(1000);
-  ed_mister.close();
-  console.log('Regulating mister - ', env_humidity);
-}
-
-setTimeout(() => {
-  ed_fanheater.open();
-  ed_mister.open();
-}, 15000)
-
-// Fan cooler
-if (env_humidity >= config.thresholdValues.env_humidity.max || env_temp >= config.thresholdValues.env_temp.max) {
-  led.pulse(1000);
-  ed_fancooler.close();
-  console.log('Regulating air cooler - ', env_humidity, env_temp);
-} else {
-  ed_fancooler.open();
-}
-
-// Water temperature
-// Turn heating pad on if too cold.
-if (water_temp < config.thresholdValues.water_temp.min) {
-  led.pulse(1000);
-  ed_heatingpad.close();
-  console.log('Regulating water temperature - ', water_temp);
-} else {
-  ed_heatingpad.open();
-}
 
 // Water electrical conductivity
 if (water_ec < config.thresholdValues.water_ec.min) {
@@ -332,20 +293,6 @@ if (water_ph > config.thresholdValues.water_ph.max) {
  */
 }
 
-function stopDevice(device) {
-  led.stop().off();
-  device.close();
-  console.log('Stopping device - ', device);
-}
-
-function stopAllDevices() {
-  led.stop().off();
-  ed_fanheater.open();
-  ed_fancooler.open();
-  ed_heatingpad.open();
-  ed_mister.open();
-  console.log('Stopping all devices');
-}
 
 // Emit sensor data and regulate grow environment on 60s intervals
 setInterval(() => {
@@ -366,7 +313,7 @@ setInterval(() => {
     console.log('Water quality: ', rt_water_temp, rt_water_ec, rt_water_ph);
   }
 
-  regulateActions(rt_env_temp, rt_env_humidity, rt_water_temp);
+  regulateEnvironment(rt_env_temp, rt_env_humidity, rt_water_temp);
 }, 30000);
 
 // Express data routes
