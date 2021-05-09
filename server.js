@@ -240,7 +240,7 @@ function regulateActions(env_light, env_temp, env_humidity, water_temp) {
   // a timeout i used to prevent them from staying on for too long.
   setTimeout(() => {
     stopDevice(ed_fanheater);
-    stopDevice(mister);
+    stopDevice(ed_mister);
   }, 10000)
 
   /*
