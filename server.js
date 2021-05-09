@@ -231,17 +231,17 @@ function regulateActions(env_light, env_temp, env_humidity, water_temp) {
     led.pulse(1000);
     ed_mister.open();
     setTimeout(() => {
-      ed_mister.close()
+      ed_mister.close();
     }, 15000)
   }
 
   // Water temperature
   // Turn heating pad on if too cold.
-  if (water_temp < config.thresholdValues.water_temp.min) {
+  if (water_temp <= config.thresholdValues.water_temp.min) {
     led.pulse(1000);
     ed_heatingpad.open();
     setTimeout(() => {
-      ed_heatingpad.close()
+      ed_heatingpad.close();
     }, 15000)
   }
 
