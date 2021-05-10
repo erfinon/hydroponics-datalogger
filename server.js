@@ -29,6 +29,17 @@ let sensorWaterTemp; let sensorWaterEC; let sensorWaterPH;
 let pump_nutrients1; let pump_nutrients2; let pump_phup; let pump_phdown;
 let ed_fanheater; let ed_fancooler; let ed_heatingpad; let ed_mister
 
+function shutdownDevices() {
+  pump_nutrients1.close();
+  pump_nutrients2.close();
+  pump_phup.close();
+  pump_phdown.close();
+  ed_fanheater.close();
+  ed_fancooler.close();
+  ed_heatingpad.close();
+  ed_mister.close();
+}
+
 // Connect to microcontroller
 const mcu = new five.Board({
   port: config.mcu.port,
@@ -48,14 +59,7 @@ mcu.once('ready', () => {
   ed_heatingpad = new five.Relay(config.relayPins.ed_heatingpad);
   ed_mister = new five.Relay(config.relayPins.ed_mister);
   // Make sure the relays are turned off
-  pump_nutrients1.close();
-  pump_nutrients2.close();
-  pump_phup.close();
-  pump_phdown.close();
-  ed_fanheater.close();
-  ed_fancooler.close();
-  ed_heatingpad.close();
-  ed_mister.close();
+  shutdownDevices();
 
   // Initialize sensors
   // Environment light sensor
@@ -104,27 +108,13 @@ mcu.once('ready', () => {
 // Exit handler for microcontroller
 }).on('exit', () => {
   led.stop().off();
-  pump_nutrients1.close();
-  pump_nutrients2.close();
-  pump_phup.close();
-  pump_phdown.close();
-  ed_fanheater.close();
-  ed_fancooler.close();
-  ed_heatingpad.close();
-  ed_mister.close();
+  shutdownDevices();
   console.log('Dropping connection to microcontroller.');
 
 // Error handler for microcontroller
 }).on('error', (err) => {
   led.stop().off();
-  pump_nutrients1.close();
-  pump_nutrients2.close();
-  pump_phup.close();
-  pump_phdown.close();
-  ed_fanheater.close();
-  ed_fancooler.close();
-  ed_heatingpad.close();
-  ed_mister.close();
+  shutdownDevices();
   console.log('Unable to connect with microcontroller.');
   console.log(err);
 });
