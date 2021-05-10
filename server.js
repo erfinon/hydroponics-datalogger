@@ -88,7 +88,7 @@ mcu.once('ready', () => {
       pin: config.sensorPins.water_ph,
       freq: 5000,
     });
-  }, 1000);
+  }, 2000);
 
   // Pulse LED diode to indicate the microcontroller is running
   led = new five.Led(config.sensorPins.led);
