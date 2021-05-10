@@ -68,6 +68,10 @@ mcu.once('ready', () => {
     controller: 'SHT31D',
     freq: 5000,
   });
+  sensorEnvHumidity = new five.Hygrometer({
+    controller: 'SHT31D',
+    freq: 5000,
+  });
   // Water electrical conductivity sensor
   sensorWaterEC = new five.Sensor({
     pin: config.sensorPins.water_ec,
@@ -82,20 +86,13 @@ mcu.once('ready', () => {
   // Wait .5s to initialize more sensors, a bug in ConfigurableFirmata
   // can cause issues if several 1-wire sensors are initialized in quick succession
   setTimeout(() => {
-    sensorEnvHumidity = new five.Hygrometer({
-      controller: 'SHT31D',
-      freq: 5000,
-    });
-  }, 500);
-
-  setTimeout(() => {
     // Water temperature sensor
     sensorWaterTemp = new five.Thermometer({
       controller: 'DS18B20',
       pin: config.sensorPins.water_temp,
       freq: 5000,
     });
-  }, 500);
+  }, 2000);
 
   // Pulse LED diode to indicate the microcontroller is running
   led = new five.Led(config.sensorPins.led);
