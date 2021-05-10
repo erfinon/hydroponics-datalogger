@@ -68,13 +68,26 @@ mcu.once('ready', () => {
     controller: 'SHT31D',
     freq: 5000,
   });
-  sensorEnvHumidity = new five.Hygrometer({
-    controller: 'SHT31D',
+  // Water electrical conductivity sensor
+  sensorWaterEC = new five.Sensor({
+    pin: config.sensorPins.water_ec,
+    freq: 5000,
+  });
+  // Water ph sensor
+  sensorWaterPH = new five.Sensor({
+    pin: config.sensorPins.water_ph,
     freq: 5000,
   });
 
-  // Wait 500ms to initialize water sensors, a bug in ConfigurableFirmata
-  // can cause issues if two 1-wire sensors are initialized in quick succession
+  // Wait .5s to initialize more sensors, a bug in ConfigurableFirmata
+  // can cause issues if several 1-wire sensors are initialized in quick succession
+  setTimeout(() => {
+    sensorEnvHumidity = new five.Hygrometer({
+      controller: 'SHT31D',
+      freq: 5000,
+    });
+  }, 500);
+
   setTimeout(() => {
     // Water temperature sensor
     sensorWaterTemp = new five.Thermometer({
@@ -82,17 +95,7 @@ mcu.once('ready', () => {
       pin: config.sensorPins.water_temp,
       freq: 5000,
     });
-    // Water electrical conductivity sensor
-    sensorWaterEC = new five.Sensor({
-      pin: config.sensorPins.water_ec,
-      freq: 5000,
-    });
-    // Water ph sensor
-    sensorWaterPH = new five.Sensor({
-      pin: config.sensorPins.water_ph,
-      freq: 5000,
-    });
-  }, 2000);
+  }, 500);
 
   // Pulse LED diode to indicate the microcontroller is running
   led = new five.Led(config.sensorPins.led);
@@ -129,10 +132,11 @@ mcu.once('ready', () => {
   console.log(err);
 });
 
-// Poll sensors for data
+// Poll sensors for data returns all values
+// except light with two decimal points
 // Light
 function getEnvLight(sensorEnvLight) {
-  return Math.round((sensorEnvLight.value / 1024) * 100);
+  return Math.round(sensorEnvLight.value / 1024 * 100);
 }
 // Temperature
 function getEnvTemp(sensorEnvTemp) {
@@ -150,7 +154,6 @@ function getWaterTemp(sensorWaterTemp) {
 // Read voltage from analog sensor and convert
 // to EC, compensate for temperature and then
 // convert to TDS (total dissolved solids) ppm.
-// Returns a float with 2 decimal places
 const ec_kvalue = 1;
 const tds_factor = 0.5;
 function getWaterEC(sensorWaterEC) {
@@ -165,7 +168,6 @@ function getWaterEC(sensorWaterEC) {
 
 // Read voltage from analog sensor and convert
 // to ph with calibration offset.
-// Returns a float value with 2 decimal places.
 const ph_offset = 0.75 // Offset for calibration
 function getWaterPH(sensorWaterPH) {
   let ph_voltage = sensorWaterPH.value * 5 / 1024;
@@ -237,11 +239,14 @@ function saveSensorData(env_light, env_temp, env_humidity, water_temp, water_ec,
     .close()
     .then(() => {
       console.log('Saving sensor data')
+      return true;
     })
     .catch(e => {
       console.error(e)
       console.log('\\nERROR: Could not save sensor data')
     })
+
+  return false;
 }
 
 // LED diode function, turn off if no regulating action is performed.
@@ -250,7 +255,11 @@ function ledOff() {
     getEnvHumidity(sensorEnvHumidity) >= config.thresholdValues.env_humidity.max && getEnvTemp(sensorEnvTemp) >= config.thresholdValues.env_temp.max &&
     getWaterTemp(sensorWaterTemp) <= config.thresholdValues.water_temp.min) {
     led.stop().off();
+
+    return true;
   }
+
+  return false;
 }
 
 // Start regulatory actions and light up LED diode
@@ -280,29 +289,21 @@ function regulateEnvironment(env_temp, env_humidity, water_temp) {
   if (env_humidity >= config.thresholdValues.env_humidity.max || env_temp >= config.thresholdValues.env_temp.max) {
     led.pulse(1000);
     ed_fancooler.open();
-  } else {
-    ed_fancooler.close();
-  }
+  } else { ed_fancooler.close(); }
 
   // Heating pad
   if (water_temp <= config.thresholdValues.water_temp.min) {
     led.pulse(1000);
     ed_heatingpad.open();
-  } else {
-    ed_heatingpad.close();
-  }
+  } else { ed_heatingpad.close(); }
 
-  ledOff();
-  /*
   // Nutrient pumps
   if (water_ec < config.thresholdValues.water_ec.min) {
-    led.pulse(1000);
     pump_nutrients1.open();
     pump_nutrients2.open();
 
     // Do 1s incremental gains on pump regulation.
     setTimeout(() => {
-      led.stop().off();
       pump_nutrients1.close();
       pump_nutrients2.close();
     }, 1000)
@@ -315,7 +316,6 @@ function regulateEnvironment(env_temp, env_humidity, water_temp) {
 
     // Do 0.5s incremental gains on pump regulation.
     setTimeout(() => {
-      led.stop().off();
       pump_phup.close();
     }, 500)
   }
@@ -326,12 +326,11 @@ function regulateEnvironment(env_temp, env_humidity, water_temp) {
 
     // Do 0.5s incremental gains on pump regulation.
     setTimeout(() => {
-      led.stop().off();
       pump_phdown.close();
     }, 1000)
   }
 
-   */
+  ledOff();
 }
 
 
