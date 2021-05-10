@@ -264,7 +264,7 @@ function ledOff() {
 
 // Start regulatory actions and light up LED diode
 // if threshold values are exceeded.
-function regulateEnvironment(env_temp, env_humidity, water_temp) {
+function regulateEnvironment(env_temp, env_humidity, water_temp, water_ec, water_ph) {
   // Fan heater
   if (env_temp <= config.thresholdValues.env_temp.min) {
     led.pulse(1000);
