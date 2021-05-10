@@ -136,11 +136,11 @@ function getEnvLight(sensorEnvLight) {
 }
 // Temperature
 function getEnvTemp(sensorEnvTemp) {
-  return sensorEnvTemp.thermometer.celsius;
+  return sensorEnvTemp.celsius;
 }
 // Humidity
 function getEnvHumidity(sensorEnvHumidity) {
-  return sensorEnvHumidity.hygrometer.relativeHumidity;
+  return sensorEnvHumidity.relativeHumidity;
 }
 // Water temperature
 function getWaterTemp(sensorWaterTemp) {
