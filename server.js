@@ -90,7 +90,7 @@ mcu.once('ready', () => {
       freq: 5000,
     });
     console.log('Init water temp sensor')
-  }, 1000);
+  }, 2000);
   // Water electrical conductivity sensor
   sensorWaterEC = new five.Sensor({
     pin: config.sensorPins.water_ec,
