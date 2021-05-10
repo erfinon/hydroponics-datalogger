@@ -71,7 +71,7 @@ mcu.once('ready', () => {
 
   // Wait 500ms to initialize water sensors, a bug in ConfigurableFirmata
   // can cause issues if two 1-wire sensors are initialized in quick succession
-  setInterval(() => {
+  setTimeout(() => {
     // Water temperature sensor
     sensorWaterTemp = new five.Thermometer({
       controller: 'DS18B20',
