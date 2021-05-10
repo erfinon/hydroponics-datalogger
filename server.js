@@ -306,7 +306,7 @@ function regulateEnvironment(env_temp, env_humidity, water_temp, water_ec, water
     setTimeout(() => {
       pump_nutrients1.close();
       pump_nutrients2.close();
-    }, 1000)
+    }, 5000)
   }
 
   // PH pumps
@@ -317,7 +317,7 @@ function regulateEnvironment(env_temp, env_humidity, water_temp, water_ec, water
     // Do 0.5s incremental gains on pump regulation.
     setTimeout(() => {
       pump_phup.close();
-    }, 1000)
+    }, 5000)
   }
 
   if (water_ph > config.thresholdValues.water_ph.max) {
@@ -327,7 +327,7 @@ function regulateEnvironment(env_temp, env_humidity, water_temp, water_ec, water
     // Do 0.5s incremental gains on pump regulation.
     setTimeout(() => {
       pump_phdown.close();
-    }, 1000)
+    }, 5000)
   }
 
   ledOff();
