@@ -72,15 +72,11 @@ mcu.once('ready', () => {
     controller: 'SHT31D',
     freq: 5000,
   });
-  // Wait 2.5s to initialize more sensors, a bug in ConfigurableFirmata
-  // can cause issues if several 1-wire sensors are initialized in quick succession
-  setTimeout(() => {
-    // Water temperature sensor
-    sensorEnvHumidity = new five.Hygrometer({
-      controller: 'SHT31D',
-      freq: 5000,
-    });
-  }, 2500);
+  // Environment humidity sensor
+  sensorEnvHumidity = new five.Hygrometer({
+    controller: 'SHT31D',
+    freq: 5000,
+  });
   // Wait 2.5s to initialize more sensors, a bug in ConfigurableFirmata
   // can cause issues if several 1-wire sensors are initialized in quick succession
   setTimeout(() => {
