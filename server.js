@@ -262,12 +262,14 @@ function regulateEnvironment(env_temp, env_humidity, water_temp) {
   if (env_temp <= config.thresholdValues.env_temp.min) {
     led.pulse(1000);
     ed_fanheater.open();
+    console.log('Starting fan heater..')
   }
 
   // Ultrasonic mister
   if (env_humidity <= config.thresholdValues.env_humidity.min) {
     led.pulse(1000);
     ed_mister.open();
+    console.log('Starting mister..')
   }
 
   // Heater is powerful and mister can destroy sensors,
@@ -282,12 +284,14 @@ function regulateEnvironment(env_temp, env_humidity, water_temp) {
   if (env_humidity >= config.thresholdValues.env_humidity.max || env_temp >= config.thresholdValues.env_temp.max) {
     led.pulse(1000);
     ed_fancooler.open();
+    console.log('Starting fan cooler..')
   } else { ed_fancooler.close(); }
 
   // Heating pad
   if (water_temp <= config.thresholdValues.water_temp.min) {
     led.pulse(1000);
     ed_heatingpad.open();
+    console.log('Starting heating pad..')
   } else { ed_heatingpad.close(); }
 
   ledOff();
