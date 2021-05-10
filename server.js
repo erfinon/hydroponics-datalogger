@@ -24,7 +24,7 @@ console.log(`Listening on port ${config.express.port}`);
  */
 const five = require('johnny-five');
 
-let led; let sensorEnvLight; let sensorEnvTempRH;
+let led; let sensorEnvLight; let sensorEnvTemp; let sensorEnvRH;
 let sensorWaterTemp; let sensorWaterEC; let sensorWaterPH;
 let pump_nutrients1; let pump_nutrients2; let pump_phup; let pump_phdown;
 let ed_fanheater; let ed_fancooler; let ed_heatingpad; let ed_mister
@@ -64,7 +64,11 @@ mcu.once('ready', () => {
     freq: 5000,
   });
   // Environment temperature / humidity sensor
-  sensorEnvTempRH = new five.Multi({
+  sensorEnvTemp = new five.Thermometer({
+    controller: 'SHT31D',
+    freq: 5000,
+  });
+  sensorEnvHumidity = new five.Hygrometer({
     controller: 'SHT31D',
     freq: 5000,
   });
@@ -128,19 +132,19 @@ mcu.once('ready', () => {
 // Poll sensors for data
 // Light
 function getEnvLight(sensorEnvLight) {
-  return Math.round(sensorEnvLight.value / 1024 * 100);
+  return Math.round((sensorEnvLight.value / 1024) * 100);
 }
 // Temperature
-function getEnvTemp(sensorEnvTempRH) {
-  return Math.round(sensorEnvTempRH.thermometer.celsius);
+function getEnvTemp(sensorEnvTemp) {
+  return sensorEnvTemp.thermometer.celsius;
 }
 // Humidity
-function getEnvHumidity(sensorEnvTempRH) {
-  return Math.round(sensorEnvTempRH.hygrometer.relativeHumidity);
+function getEnvHumidity(sensorEnvHumidity) {
+  return sensorEnvHumidity.hygrometer.relativeHumidity;
 }
 // Water temperature
 function getWaterTemp(sensorWaterTemp) {
-  return Math.round(sensorWaterTemp.celsius);
+  return sensorWaterTemp.celsius;
 }
 
 // Read voltage from analog sensor and convert
@@ -242,8 +246,8 @@ function saveSensorData(env_light, env_temp, env_humidity, water_temp, water_ec,
 
 // LED diode function, turn off if no regulating action is performed.
 function ledOff() {
-  if (getEnvTemp(sensorEnvTempRH) <= config.thresholdValues.env_temp.min && getEnvHumidity(sensorEnvTempRH) <= config.thresholdValues.env_humidity.min &&
-    getEnvHumidity(sensorEnvTempRH) >= config.thresholdValues.env_humidity.max && getEnvTemp(sensorEnvTempRH) >= config.thresholdValues.env_temp.max &&
+  if (getEnvTemp(sensorEnvTemp) <= config.thresholdValues.env_temp.min && getEnvHumidity(sensorEnvHumidity) <= config.thresholdValues.env_humidity.min &&
+    getEnvHumidity(sensorEnvHumidity) >= config.thresholdValues.env_humidity.max && getEnvTemp(sensorEnvTemp) >= config.thresholdValues.env_temp.max &&
     getWaterTemp(sensorWaterTemp) <= config.thresholdValues.water_temp.min) {
     led.stop().off();
   }
@@ -335,17 +339,17 @@ function regulateEnvironment(env_temp, env_humidity, water_temp) {
 setInterval(() => {
   // Save to database if enabled in config
   if (config.influxdb.enabled === 1) {
-    console.log('Air climate: ', getEnvLight(sensorEnvLight), getEnvTemp(sensorEnvTempRH), getEnvHumidity(sensorEnvTempRH));
+    console.log('Air climate: ', getEnvLight(sensorEnvLight), getEnvTemp(sensorEnvTemp), getEnvHumidity(sensorEnvHumidity));
     console.log('Water quality: ', getWaterTemp(sensorWaterTemp), getWaterEC(sensorWaterEC), getWaterPH(sensorWaterPH));
 
-    saveSensorData(getEnvLight(sensorEnvLight), getEnvTemp(sensorEnvTempRH), getEnvHumidity(sensorEnvTempRH),
+    saveSensorData(getEnvLight(sensorEnvLight), getEnvTemp(sensorEnvTemp), getEnvHumidity(sensorEnvHumidity),
       getWaterTemp(sensorWaterTemp), getWaterEC(sensorWaterEC), getWaterPH(sensorWaterPH));
   } else {
-    console.log('Air climate: ', getEnvLight(sensorEnvLight), getEnvTemp(sensorEnvTempRH), getEnvHumidity(sensorEnvTempRH));
+    console.log('Air climate: ', getEnvLight(sensorEnvLight), getEnvTemp(sensorEnvTemp), getEnvHumidity(sensorEnvHumidity));
     console.log('Water quality: ', getWaterTemp(sensorWaterTemp), getWaterEC(sensorWaterEC), getWaterPH(sensorWaterPH));
   }
 
-  regulateEnvironment(getEnvTemp(sensorEnvTempRH), getEnvHumidity(sensorEnvTempRH), getWaterTemp(sensorWaterTemp),
+  regulateEnvironment(getEnvTemp(sensorEnvTemp), getEnvHumidity(sensorEnvHumidity), getWaterTemp(sensorWaterTemp),
     getWaterEC(sensorWaterEC), getWaterPH(sensorWaterPH));
 }, 30000);
 
@@ -358,12 +362,12 @@ app.get('/api/env_light', (req, res) => {
 });
 
 app.get('/api/env_temp', (req, res) => {
-  res.write(JSON.stringify(getEnvTemp(sensorEnvTempRH)));
+  res.write(JSON.stringify(getEnvTemp(sensorEnvTemp)));
   res.end();
 });
 
 app.get('/api/env_humidity', (req, res) => {
-  res.write(JSON.stringify(getEnvHumidity(sensorEnvTempRH)));
+  res.write(JSON.stringify(getEnvHumidity(sensorEnvHumidity)));
   res.end();
 });
 
