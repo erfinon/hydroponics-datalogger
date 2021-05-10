@@ -24,70 +24,10 @@ console.log(`Listening on port ${config.express.port}`);
  */
 const five = require('johnny-five');
 
-let sensorEnvLight; let sensorEnvTempRH;
+let led; let sensorEnvLight; let sensorEnvTempRH;
 let sensorWaterTemp; let sensorWaterEC; let sensorWaterPH;
 let pump_nutrients1; let pump_nutrients2; let pump_phup; let pump_phdown;
 let ed_fanheater; let ed_fancooler; let ed_heatingpad; let ed_mister
-
-let led = new five.Led(config.sensorPins.led);
-
-function edShutDown() {
-  led.stop().off();
-  pump_nutrients1.close();
-  pump_nutrients2.close();
-  pump_phup.close();
-  pump_phdown.close();
-  ed_fanheater.close();
-  ed_fancooler.close();
-  ed_heatingpad.close();
-  ed_mister.close();
-}
-
-function initRelays() {
-  // Initialize relays
-  pump_nutrients1 = new five.Relay(config.relayPins.pump_nutrients1);
-  pump_nutrients2 = new five.Relay(config.relayPins.pump_nutrients2);
-  pump_phup = new five.Relay(config.relayPins.pump_phup);
-  pump_phdown = new five.Relay(config.relayPins.pump_phdown);
-  ed_fanheater = new five.Relay(config.relayPins.ed_fanheater);
-  ed_fancooler = new five.Relay(config.relayPins.ed_fancooler);
-  ed_heatingpad = new five.Relay(config.relayPins.ed_heatingpad);
-  ed_mister = new five.Relay(config.relayPins.ed_mister);
-  // Make sure the relays are turned off
-  edShutDown();
-}
-
-function initEnvSensors() {
-  // Environment light sensor
-  sensorEnvLight = new five.Light({
-    pin: config.sensorPins.env_light,
-    freq: 1000,
-  });
-  // Environment temperature / humidity sensor
-  sensorEnvTempRH = new five.Multi({
-    controller: 'SHT31D',
-    freq: 1000,
-  });
-}
-
-function initWaterSensors() {
-  // Water temperature sensor
-  sensorWaterTemp = new five.Thermometer({
-    controller: 'DS18B20',
-    pin: config.sensorPins.water_temp,
-    freq: 1000,
-  });
-  // Water electrical conductivity sensor
-  sensorWaterEC = new five.Sensor({
-    pin: config.sensorPins.water_ec,
-    freq: 1000,
-  });
-  // Water ph sensor
-  sensorWaterPH = new five.Sensor({
-    pin: config.sensorPins.water_ph,
-    freq: 1000,
-  });
-}
 
 // Connect to microcontroller
 const mcu = new five.Board({
@@ -98,17 +38,60 @@ mcu.once('ready', () => {
   console.log('Microcontroller ready!');
   mcu.isReady = true;
 
-  // Initialize relays and sensors
-  initRelays();
-  initEnvSensors();
-  // Wait 500ms to initialize water sensors, a Firmata bug ,
-  // can cause 1-wire sensors such as SHT31D and DS18B20 to time out
-  // if initialized without a delay
-  setTimeout(() => {
-    initWaterSensors();
+  // Initialize relays
+  pump_nutrients1 = new five.Relay(config.relayPins.pump_nutrients1);
+  pump_nutrients2 = new five.Relay(config.relayPins.pump_nutrients2);
+  pump_phup = new five.Relay(config.relayPins.pump_phup);
+  pump_phdown = new five.Relay(config.relayPins.pump_phdown);
+  ed_fanheater = new five.Relay(config.relayPins.ed_fanheater);
+  ed_fancooler = new five.Relay(config.relayPins.ed_fancooler);
+  ed_heatingpad = new five.Relay(config.relayPins.ed_heatingpad);
+  ed_mister = new five.Relay(config.relayPins.ed_mister);
+  // Make sure the relays are turned off
+  pump_nutrients1.close();
+  pump_nutrients2.close();
+  pump_phup.close();
+  pump_phdown.close();
+  ed_fanheater.close();
+  ed_fancooler.close();
+  ed_heatingpad.close();
+  ed_mister.close();
+
+  // Initialize sensors
+  // Environment light sensor
+  sensorEnvLight = new five.Light({
+    pin: config.sensorPins.env_light,
+    freq: 1000,
+  });
+  // Environment temperature / humidity sensor
+  sensorEnvTempRH = new five.Multi({
+    controller: 'SHT31D',
+    freq: 1000,
+  });
+
+  // Wait 500ms to initialize water sensors, a bug in ConfigurableFirmata
+  // can cause issues if two 1-wire sensors are initialized in quick succession
+  setInterval(() => {
+    // Water temperature sensor
+    sensorWaterTemp = new five.Thermometer({
+      controller: 'DS18B20',
+      pin: config.sensorPins.water_temp,
+      freq: 1000,
+    });
+    // Water electrical conductivity sensor
+    sensorWaterEC = new five.Sensor({
+      pin: config.sensorPins.water_ec,
+      freq: 1000,
+    });
+    // Water ph sensor
+    sensorWaterPH = new five.Sensor({
+      pin: config.sensorPins.water_ph,
+      freq: 1000,
+    });
   }, 500);
 
   // Pulse LED diode to indicate the microcontroller is running
+  led = new five.Led(config.sensorPins.led);
   led.pulse(250);
   setTimeout(() => {
     led.stop().off();
@@ -116,11 +99,28 @@ mcu.once('ready', () => {
 
 // Exit handler for microcontroller
 }).on('exit', () => {
-  edShutDown();
+  led.stop().off();
+  pump_nutrients1.close();
+  pump_nutrients2.close();
+  pump_phup.close();
+  pump_phdown.close();
+  ed_fanheater.close();
+  ed_fancooler.close();
+  ed_heatingpad.close();
+  ed_mister.close();
   console.log('Dropping connection to microcontroller.');
+
 // Error handler for microcontroller
 }).on('error', (err) => {
-  edShutDown();
+  led.stop().off();
+  pump_nutrients1.close();
+  pump_nutrients2.close();
+  pump_phup.close();
+  pump_phdown.close();
+  ed_fanheater.close();
+  ed_fancooler.close();
+  ed_heatingpad.close();
+  ed_mister.close();
   console.log('Unable to connect with microcontroller.');
   console.log(err);
 });
