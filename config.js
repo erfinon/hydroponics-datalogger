@@ -37,7 +37,7 @@ module.exports = {
       max: '27',
     },
     env_humidity: {
-      min: '40',
+      min: '50',
       max: '60',
     },
     water_temp: {
