@@ -239,14 +239,11 @@ function saveSensorData(env_light, env_temp, env_humidity, water_temp, water_ec,
     .close()
     .then(() => {
       console.log('Saving sensor data')
-      return true;
     })
     .catch(e => {
       console.error(e)
       console.log('\\nERROR: Could not save sensor data')
     })
-
-  return false;
 }
 
 // LED diode function, turn off if no regulating action is performed.
@@ -255,11 +252,7 @@ function ledOff() {
     getEnvHumidity(sensorEnvHumidity) >= config.thresholdValues.env_humidity.max && getEnvTemp(sensorEnvTemp) >= config.thresholdValues.env_temp.max &&
     getWaterTemp(sensorWaterTemp) <= config.thresholdValues.water_temp.min) {
     led.stop().off();
-
-    return true;
   }
-
-  return false;
 }
 
 // Start regulatory actions and light up LED diode
