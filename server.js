@@ -136,15 +136,15 @@ function getEnvLight(sensorEnvLight) {
 }
 // Temperature
 function getEnvTemp(sensorEnvTemp) {
-  return sensorEnvTemp.celsius;
+  return sensorEnvTemp.celsius.toFixed(2);
 }
 // Humidity
 function getEnvHumidity(sensorEnvHumidity) {
-  return sensorEnvHumidity.relativeHumidity;
+  return sensorEnvHumidity.relativeHumidity.toFixed(2);
 }
 // Water temperature
 function getWaterTemp(sensorWaterTemp) {
-  return sensorWaterTemp.celsius;
+  return sensorWaterTemp.celsius.toFixed(2);
 }
 
 // Read voltage from analog sensor and convert
