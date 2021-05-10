@@ -132,7 +132,7 @@ mcu.once('ready', () => {
   console.log(err);
 });
 
-// Poll sensors for data. Returns all values
+// Poll sensors for data returns all values
 // except light with two decimal points
 // Light
 function getEnvLight(sensorEnvLight) {
@@ -245,6 +245,8 @@ function saveSensorData(env_light, env_temp, env_humidity, water_temp, water_ec,
       console.error(e)
       console.log('\\nERROR: Could not save sensor data')
     })
+
+  return false;
 }
 
 // LED diode function, turn off if no regulating action is performed.
@@ -253,12 +255,16 @@ function ledOff() {
     getEnvHumidity(sensorEnvHumidity) >= config.thresholdValues.env_humidity.max && getEnvTemp(sensorEnvTemp) >= config.thresholdValues.env_temp.max &&
     getWaterTemp(sensorWaterTemp) <= config.thresholdValues.water_temp.min) {
     led.stop().off();
+
+    return true;
   }
+
+  return false;
 }
 
 // Start regulatory actions and light up LED diode
 // if threshold values are exceeded.
-function regulateEnvironment(env_temp, env_humidity, water_temp, water_ec, water_ph) {
+function regulateEnvironment(env_temp, env_humidity, water_temp) {
   // Fan heater
   if (env_temp <= config.thresholdValues.env_temp.min) {
     led.pulse(1000);
@@ -277,7 +283,7 @@ function regulateEnvironment(env_temp, env_humidity, water_temp, water_ec, water
     ed_fanheater.close();
     ed_mister.close();
     ledOff();
-  }, 10000)
+  }, 15000)
 
   // Fan cooler
   if (env_humidity >= config.thresholdValues.env_humidity.max || env_temp >= config.thresholdValues.env_temp.max) {
@@ -291,16 +297,20 @@ function regulateEnvironment(env_temp, env_humidity, water_temp, water_ec, water
     ed_heatingpad.open();
   } else { ed_heatingpad.close(); }
 
+  ledOff();
+  /*
   // Nutrient pumps
   if (water_ec < config.thresholdValues.water_ec.min) {
+    led.pulse(1000);
     pump_nutrients1.open();
     pump_nutrients2.open();
 
     // Do 1s incremental gains on pump regulation.
     setTimeout(() => {
+      led.stop().off();
       pump_nutrients1.close();
       pump_nutrients2.close();
-    }, 5000)
+    }, 1000)
   }
 
   // PH pumps
@@ -310,8 +320,9 @@ function regulateEnvironment(env_temp, env_humidity, water_temp, water_ec, water
 
     // Do 0.5s incremental gains on pump regulation.
     setTimeout(() => {
+      led.stop().off();
       pump_phup.close();
-    }, 5000)
+    }, 500)
   }
 
   if (water_ph > config.thresholdValues.water_ph.max) {
@@ -320,11 +331,12 @@ function regulateEnvironment(env_temp, env_humidity, water_temp, water_ec, water
 
     // Do 0.5s incremental gains on pump regulation.
     setTimeout(() => {
+      led.stop().off();
       pump_phdown.close();
-    }, 5000)
+    }, 1000)
   }
 
-  ledOff();
+   */
 }
 
 
@@ -344,7 +356,7 @@ setInterval(() => {
 
   regulateEnvironment(getEnvTemp(sensorEnvTemp), getEnvHumidity(sensorEnvHumidity), getWaterTemp(sensorWaterTemp),
     getWaterEC(sensorWaterEC), getWaterPH(sensorWaterPH));
-}, 15000);
+}, 30000);
 
 
 // Express data routes
