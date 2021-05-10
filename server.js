@@ -132,7 +132,7 @@ mcu.once('ready', () => {
   console.log(err);
 });
 
-// Poll sensors for data returns all values
+// Poll sensors for data. Returns all values
 // except light with two decimal points
 // Light
 function getEnvLight(sensorEnvLight) {
@@ -283,7 +283,7 @@ function regulateEnvironment(env_temp, env_humidity, water_temp, water_ec, water
     ed_fanheater.close();
     ed_mister.close();
     ledOff();
-  }, 15000)
+  }, 10000)
 
   // Fan cooler
   if (env_humidity >= config.thresholdValues.env_humidity.max || env_temp >= config.thresholdValues.env_temp.max) {
@@ -317,7 +317,7 @@ function regulateEnvironment(env_temp, env_humidity, water_temp, water_ec, water
     // Do 0.5s incremental gains on pump regulation.
     setTimeout(() => {
       pump_phup.close();
-    }, 500)
+    }, 1000)
   }
 
   if (water_ph > config.thresholdValues.water_ph.max) {
@@ -350,7 +350,7 @@ setInterval(() => {
 
   regulateEnvironment(getEnvTemp(sensorEnvTemp), getEnvHumidity(sensorEnvHumidity), getWaterTemp(sensorWaterTemp),
     getWaterEC(sensorWaterEC), getWaterPH(sensorWaterPH));
-}, 30000);
+}, 15000);
 
 
 // Express data routes
