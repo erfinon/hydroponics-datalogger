@@ -242,9 +242,9 @@ function saveSensorData(env_light, env_temp, env_humidity, water_temp, water_ec,
 
 // LED diode function, turn off if no regulating action is performed.
 function ledOff() {
-  if (env_temp <= config.thresholdValues.env_temp.min && env_humidity <= config.thresholdValues.env_humidity.min &&
-    env_humidity >= config.thresholdValues.env_humidity.max && env_temp >= config.thresholdValues.env_temp.max &&
-    water_temp <= config.thresholdValues.water_temp.min) {
+  if (getEnvTemp(sensorEnvTempRH) <= config.thresholdValues.env_temp.min && getEnvHumidity(sensorEnvTempRH) <= config.thresholdValues.env_humidity.min &&
+    getEnvHumidity(sensorEnvTempRH) >= config.thresholdValues.env_humidity.max && getEnvTemp(sensorEnvTempRH) >= config.thresholdValues.env_temp.max &&
+    getWaterTemp(sensorWaterTemp) <= config.thresholdValues.water_temp.min) {
     led.stop().off();
   }
 }
