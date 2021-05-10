@@ -24,7 +24,7 @@ console.log(`Listening on port ${config.express.port}`);
  */
 const five = require('johnny-five');
 
-let led; let sensorEnvLight; let sensorEnvTemp; let sensorEnvRH;
+let led; let sensorEnvLight; let sensorEnvTemp; let sensorEnvHumidity;
 let sensorWaterTemp; let sensorWaterEC; let sensorWaterPH;
 let pump_nutrients1; let pump_nutrients2; let pump_phup; let pump_phdown;
 let ed_fanheater; let ed_fancooler; let ed_heatingpad; let ed_mister
@@ -92,7 +92,7 @@ mcu.once('ready', () => {
       pin: config.sensorPins.water_temp,
       freq: 5000,
     });
-  }, 2000);
+  }, 2500);
 
   // Pulse LED diode to indicate the microcontroller is running
   led = new five.Led(config.sensorPins.led);
