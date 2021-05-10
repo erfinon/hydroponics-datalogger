@@ -240,6 +240,15 @@ function saveSensorData(env_light, env_temp, env_humidity, water_temp, water_ec,
     })
 }
 
+// LED diode function, turn off if no regulating action is performed.
+function ledOff() {
+  if (env_temp <= config.thresholdValues.env_temp.min && env_humidity <= config.thresholdValues.env_humidity.min &&
+    env_humidity >= config.thresholdValues.env_humidity.max && env_temp >= config.thresholdValues.env_temp.max &&
+    water_temp <= config.thresholdValues.water_temp.min) {
+    led.stop().off();
+  }
+}
+
 // Start regulatory actions and light up LED diode
 // if threshold values are exceeded.
 function regulateEnvironment(env_temp, env_humidity, water_temp) {
@@ -258,9 +267,9 @@ function regulateEnvironment(env_temp, env_humidity, water_temp) {
   // Heater is powerful and mister can destroy sensors,
   // turn these off after 15s and do incremental gains.
   setTimeout(() => {
-    led.stop().off();
     ed_fanheater.close();
     ed_mister.close();
+    ledOff();
   }, 15000)
 
   // Fan cooler
@@ -268,18 +277,18 @@ function regulateEnvironment(env_temp, env_humidity, water_temp) {
     led.pulse(1000);
     ed_fancooler.open();
   } else {
-    led.stop().off();
     ed_fancooler.close();
   }
 
   // Heating pad
-  if (water_temp < config.thresholdValues.water_temp.min) {
+  if (water_temp <= config.thresholdValues.water_temp.min) {
     led.pulse(1000);
     ed_heatingpad.open();
   } else {
-    led.stop().off();
     ed_heatingpad.close();
   }
+
+  ledOff();
   /*
   // Nutrient pumps
   if (water_ec < config.thresholdValues.water_ec.min) {
