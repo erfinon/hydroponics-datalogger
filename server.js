@@ -398,7 +398,7 @@ setInterval(() => {
     startPHUp();
   }
 
-  if (getWaterPH(sensorWaterPH) > config.thresholdValues.water_ph.min) {
+  if (getWaterPH(sensorWaterPH) > config.thresholdValues.water_ph.max) {
     startPHDown();
   }
 
