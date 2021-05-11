@@ -124,8 +124,8 @@ mcu.once('ready', () => {
   console.log(err);
 });
 
-// Poll sensors for data returns all values
-// except light with two decimal points
+// Poll sensors for data. Returns all values
+// except light (percent) with two decimal points
 // Light
 function getEnvLight(sensorEnvLight) {
   return Math.round(sensorEnvLight.value / 1024 * 100);
@@ -254,7 +254,8 @@ function startHeater() {
   ed_fanheater.open();
   console.log('Starting fan heater..')
 
-  // The heater is powerful, turn off after 15s and do incremental gains.
+  // The heater is powerful, turn off
+  // after 15s and do incremental gains.
   setTimeout(() => {
     ed_fanheater.close();
     ledOff();
@@ -295,12 +296,12 @@ function startNutrients() {
   pump_nutrients1.open();
   pump_nutrients2.open();
 
-  // Do 1s incremental gains on pump regulation.
+  // Do 0.5s incremental gains on pump regulation.
   setTimeout(() => {
     led.stop().off();
     pump_nutrients1.close();
     pump_nutrients2.close();
-  }, 15000)
+  }, 500)
 }
 
 // Start the PH up pump
@@ -312,7 +313,7 @@ function startPHUp() {
   setTimeout(() => {
     led.stop().off();
     pump_phup.close();
-  }, 15000)
+  }, 250)
 }
 
 // Start the PH down pump
@@ -324,7 +325,7 @@ function startPHDown() {
   setTimeout(() => {
     led.stop().off();
     pump_phdown.close();
-  }, 15000)
+  }, 250)
 }
 
 // Stop the fan cooler
