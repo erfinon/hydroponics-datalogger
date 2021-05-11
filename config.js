@@ -1,6 +1,7 @@
 module.exports = {
   mcu: {
     port: '/dev/ttyACM0',
+    //port: 'COM3',
   },
   express: {
     port: 4000,
@@ -8,6 +9,7 @@ module.exports = {
   influxdb: {
     enabled: 1,
     host: 'localhost:8086',
+    //host: '192.168.55.14:8086',
     org: 'admin',
     bucket: 'maya',
     username: 'admin',
@@ -40,10 +42,12 @@ module.exports = {
       min: '50',
       max: '60',
     },
+
     water_temp: {
       min: '19',
       max: '', // No way to adjust water temperature down for now
     },
+
     water_ec: {
       min: '400',
       max: '', // No way to adjust EC down for now
