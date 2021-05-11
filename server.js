@@ -313,7 +313,7 @@ function startPHUp() {
   setTimeout(() => {
     led.stop().off();
     pump_phup.close();
-  }, 250)
+  }, 200)
 }
 
 // Start the PH down pump
@@ -325,7 +325,7 @@ function startPHDown() {
   setTimeout(() => {
     led.stop().off();
     pump_phdown.close();
-  }, 250)
+  }, 200)
 }
 
 // Stop the fan cooler
@@ -394,7 +394,7 @@ setInterval(() => {
   }
 
   ledOff();
-}, 30000);
+}, 60000);
 
 
 // Express data routes
