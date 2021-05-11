@@ -26,8 +26,8 @@ module.exports = {
   relayPins: {
     pump_nutrients1: 4,
     pump_nutrients2: 5,
-    pump_phup: 6,
-    pump_phdown: 7,
+    pump_phdown: 6,
+    pump_phup: 7,
     ed_fanheater: 8,
     ed_fancooler: 9,
     ed_heatingpad: 10,
