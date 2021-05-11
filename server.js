@@ -295,6 +295,7 @@ function startNutrients() {
   led.pulse(1000);
   pump_nutrients1.open();
   pump_nutrients2.open();
+  console.log('Starting nutrient pumps..')
 
   // Do 0.5s incremental gains on pump regulation.
   setTimeout(() => {
@@ -308,6 +309,7 @@ function startNutrients() {
 function startPHUp() {
   led.pulse(1000);
   pump_phup.open();
+  console.log('Starting PH UP pump..')
 
   // Do 0.5s incremental gains on pump regulation.
   setTimeout(() => {
@@ -320,6 +322,7 @@ function startPHUp() {
 function startPHDown() {
   led.pulse(1000);
   pump_phdown.open()
+  console.log('Starting PH DOWN pump..')
 
   // Do 0.5s incremental gains on pump regulation.
   setTimeout(() => {
