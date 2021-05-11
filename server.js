@@ -308,7 +308,7 @@ function startNutrients() {
     led.stop().off();
     pump_nutrients1.close();
     pump_nutrients2.close();
-  }, 1000)
+  }, 500)
 }
 
 // Start the PH up pump
@@ -317,11 +317,11 @@ function startPHUp() {
   pump_phup.open();
   console.log('Starting PH UP pump..')
 
-  // Do 0.5s incremental gains on pump regulation.
+  // Do 0.3s incremental gains on pump regulation.
   setTimeout(() => {
     led.stop().off();
     pump_phup.close();
-  }, 500)
+  }, 300)
 }
 
 // Start the PH down pump
@@ -330,11 +330,11 @@ function startPHDown() {
   pump_phdown.open()
   console.log('Starting PH DOWN pump..')
 
-  // Do 0.1s incremental gains on pump regulation.
+  // Do 0.08s incremental gains on pump regulation.
   setTimeout(() => {
     led.stop().off();
     pump_phdown.close();
-  }, 100)
+  }, 80)
 }
 
 // Stop the fan cooler
@@ -403,7 +403,7 @@ setInterval(() => {
   }
 
   ledOff();
-}, 60000);
+}, 300000);
 
 
 // Express data routes
