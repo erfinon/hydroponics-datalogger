@@ -52,17 +52,23 @@ mcu.once('ready', () => {
   console.log('Microcontroller ready!');
   mcu.isReady = true;
 
-  // Initialize relays
+  // Initialize relays and make sure they are not outputting power
   pump_nutrients1 = new five.Relay(config.relayPins.pump_nutrients1);
+  pump_nutrients1.close();
   pump_nutrients2 = new five.Relay(config.relayPins.pump_nutrients2);
+  pump_nutrients2.close();
   pump_phup = new five.Relay(config.relayPins.pump_phup);
+  pump_phup.close();
   pump_phdown = new five.Relay(config.relayPins.pump_phdown);
+  pump_phdown.close();
   ed_fanheater = new five.Relay(config.relayPins.ed_fanheater);
+  ed_fanheater.close();
   ed_fancooler = new five.Relay(config.relayPins.ed_fancooler);
+  ed_fancooler.close();
   ed_heatingpad = new five.Relay(config.relayPins.ed_heatingpad);
+  ed_heatingpad.close();
   ed_mister = new five.Relay(config.relayPins.ed_mister);
-  // Make sure the relays are turned off
-  shutdownDevices();
+  ed_mister.close();
 
   // Initialize sensors
   // Environment light sensor
