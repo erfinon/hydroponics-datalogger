@@ -7,6 +7,9 @@ const path = require('path');
 const app = express();
 const config = require(path.join(`${__dirname}/config.js`));
 
+const {InfluxDB, FluxTableMetaData, Point} = require('@influxdata/influxdb-client');
+const client = new InfluxDB({url: 'http://' + config.influxdb.host, token: config.influxdb.token});
+
 // Enable HTTP bodyParser and logger
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -80,7 +83,7 @@ mcu.once('ready', () => {
       controller: 'SHT31D',
       freq: 5000,
     });
-  }, 500);
+  }, 1000);
   setTimeout(() => {
     // Water temperature sensor
     sensorWaterTemp = new five.Thermometer({
@@ -88,7 +91,7 @@ mcu.once('ready', () => {
       pin: config.sensorPins.water_temp,
       freq: 5000,
     });
-  }, 1000);
+  }, 2000);
   // Water electrical conductivity sensor
   sensorWaterEC = new five.Sensor({
     pin: config.sensorPins.water_ec,
@@ -163,46 +166,9 @@ function getWaterPH(sensorWaterPH) {
   return (3.5 * ph_voltage + ph_offset).toFixed(2);
 }
 
-// Get all historical data from a particular sensor
-function getAllSensorData(sensor, callback) {
-  r.table('sensors')
-    .pluck('date', sensor)
-    .orderBy('date')
-    // eslint-disable-next-line consistent-return
-    .run(app.rdbConn, (err, sensorData) => {
-      if (err) {
-        return callback(err);
-      }
-      sensorData.toArray(callback);
-    });
-}
-
-// Get all historical data
-function getAllEnvLightData(callback) {
-  return getAllSensorData('env_light', callback);
-}
-function getAllEnvTempData(callback) {
-  return getAllSensorData('env_temp', callback);
-}
-function getAllEnvHumidityData(callback) {
-  return getAllSensorData('env_humidity', callback);
-}
-function getAllWaterTempData(callback) {
-  return getAllSensorData('water_temp', callback);
-}
-function getAllWaterECData(callback) {
-  return getAllSensorData('water_ec', callback);
-}
-function getAllWaterPHData(callback) {
-  return getAllSensorData('water_ph', callback);
-}
-
 // Save sensor data to database
 function saveSensorData(env_light, env_temp, env_humidity, water_temp, water_ec, water_ph) {
-  const {InfluxDB, Point} = require('@influxdata/influxdb-client');
-  const client = new InfluxDB({url: 'http://' + config.influxdb.host, token: config.influxdb.token});
   const writeApi = client.getWriteApi(config.influxdb.org, config.influxdb.bucket, 'ms');
-
   writeApi.useDefaultTags({host: 'growbox'});
 
   // Data points
@@ -235,6 +201,44 @@ function saveSensorData(env_light, env_temp, env_humidity, water_temp, water_ec,
     })
 }
 
+// Get all historical data from a particular sensor
+function getAllSensorData(sensor, callback) {
+  const queryApi = client.getQueryApi(config.influxdb.org)
+  const fluxQuery =
+    `from(bucket:"maya") |> range(start: 0) |> filter(fn: (r) => r._measurement == "${sensor}")`
+
+  queryApi.queryRows(fluxQuery, {
+    next(row, tableMeta) {
+      const sensorData = tableMeta.toObject(row)
+      // default output
+      JSON.stringify(sensorData, null, 2)
+    },
+    error(error) {
+      return callback(error);
+    },
+  })
+}
+
+// Get all historical data
+function getAllEnvLightData(callback) {
+  return getAllSensorData('env_light', callback);
+}
+function getAllEnvTempData(callback) {
+  return getAllSensorData('env_temp', callback);
+}
+function getAllEnvHumidityData(callback) {
+  return getAllSensorData('env_humidity', callback);
+}
+function getAllWaterTempData(callback) {
+  return getAllSensorData('water_temp', callback);
+}
+function getAllWaterECData(callback) {
+  return getAllSensorData('water_ec', callback);
+}
+function getAllWaterPHData(callback) {
+  return getAllSensorData('water_ph', callback);
+}
+
 // LED diode function, turn off if no regulating action is performed.
 function ledOff() {
   if (getEnvTemp(sensorEnvTemp) <= config.thresholdValues.env_temp.min && getEnvHumidity(sensorEnvHumidity) <= config.thresholdValues.env_humidity.min &&
@@ -244,85 +248,95 @@ function ledOff() {
   }
 }
 
-// Start regulatory actions and light up LED diode
-// if threshold values are exceeded.
-function regulateEnvironment(env_temp, env_humidity, water_temp) {
-  // Fan heater
-  if (env_temp <= config.thresholdValues.env_temp.min) {
-    led.pulse(1000);
-    ed_fanheater.open();
-    console.log('Starting fan heater..')
-  }
+// Start the heater
+function startHeater() {
+  led.pulse(1000);
+  ed_fanheater.open();
+  console.log('Starting fan heater..')
 
-  // Ultrasonic mister
-  if (env_humidity <= config.thresholdValues.env_humidity.min) {
-    led.pulse(1000);
-    ed_mister.open();
-    console.log('Starting mister..')
-  }
-
-  // Heater is powerful and mister can destroy sensors,
-  // turn these off after 15s and do incremental gains.
+  // The heater is powerful, turn off after 15s and do incremental gains.
   setTimeout(() => {
     ed_fanheater.close();
+    ledOff();
+  }, 15000)
+}
+
+// Start the cooler
+function startCooler() {
+  led.pulse(1000);
+  ed_fancooler.open();
+  console.log('Starting fan cooler..')
+}
+
+// Start the ultrasonic mister
+function startMister() {
+  led.pulse(1000);
+  ed_mister.open();
+  console.log('Starting mister..')
+
+  // Too much mist can destroy sensors,
+  // turn off after 15s and do incremental gains.
+  setTimeout(() => {
     ed_mister.close();
     ledOff();
   }, 15000)
+}
 
-  // Fan cooler
-  if (env_humidity >= config.thresholdValues.env_humidity.max || env_temp >= config.thresholdValues.env_temp.max) {
-    led.pulse(1000);
-    ed_fancooler.open();
-    console.log('Starting fan cooler..')
-  } else { ed_fancooler.close(); }
+// Heating pad
+function startHeatingPad() {
+  led.pulse(1000);
+  ed_heatingpad.open();
+  console.log('Starting heating pad..')
+}
 
-  // Heating pad
-  if (water_temp <= config.thresholdValues.water_temp.min) {
-    led.pulse(1000);
-    ed_heatingpad.open();
-    console.log('Starting heating pad..')
-  } else { ed_heatingpad.close(); }
+// Start the nutrient pumps
+function startNutrients() {
+  led.pulse(1000);
+  pump_nutrients1.open();
+  pump_nutrients2.open();
 
+  // Do 1s incremental gains on pump regulation.
+  setTimeout(() => {
+    led.stop().off();
+    pump_nutrients1.close();
+    pump_nutrients2.close();
+  }, 1000)
+}
+
+// Start the PH up pump
+function startPHUp() {
+  led.pulse(1000);
+  pump_phup.open();
+
+  // Do 0.5s incremental gains on pump regulation.
+  setTimeout(() => {
+    led.stop().off();
+    pump_phup.close();
+  }, 500)
+}
+
+// Start the PH down pump
+function startPHDown() {
+  led.pulse(1000);
+  pump_phdown.open()
+
+  // Do 0.5s incremental gains on pump regulation.
+  setTimeout(() => {
+    led.stop().off();
+    pump_phdown.close();
+  }, 1000)
+}
+
+// Stop the fan cooler
+function stopCooler() {
+  ed_fancooler.close();
   ledOff();
-  /*
-  // Nutrient pumps
-  if (water_ec < config.thresholdValues.water_ec.min) {
-    led.pulse(1000);
-    pump_nutrients1.open();
-    pump_nutrients2.open();
+}
 
-    // Do 1s incremental gains on pump regulation.
-    setTimeout(() => {
-      led.stop().off();
-      pump_nutrients1.close();
-      pump_nutrients2.close();
-    }, 1000)
-  }
-
-  // PH pumps
-  if (water_ph < config.thresholdValues.water_ph.min) {
-    led.pulse(1000);
-    pump_phup.open();
-
-    // Do 0.5s incremental gains on pump regulation.
-    setTimeout(() => {
-      led.stop().off();
-      pump_phup.close();
-    }, 500)
-  }
-
-  if (water_ph > config.thresholdValues.water_ph.max) {
-    led.pulse(1000);
-    pump_phdown.open()
-
-    // Do 0.5s incremental gains on pump regulation.
-    setTimeout(() => {
-      led.stop().off();
-      pump_phdown.close();
-    }, 1000)
-  }
-
-   */
+// Stop the heating pad
+function stopHeatingPad() {
+  ed_heatingpad.close();
+  ledOff();
 }
 
 
@@ -340,8 +354,45 @@ setInterval(() => {
     console.log('Water quality: ', getWaterTemp(sensorWaterTemp), getWaterEC(sensorWaterEC), getWaterPH(sensorWaterPH));
   }
 
-  regulateEnvironment(getEnvTemp(sensorEnvTemp), getEnvHumidity(sensorEnvHumidity), getWaterTemp(sensorWaterTemp),
-    getWaterEC(sensorWaterEC), getWaterPH(sensorWaterPH));
+  // Regulate grow environment
+  // Fan heater
+  if (getEnvTemp(sensorEnvTemp) <= config.thresholdValues.env_temp.min) {
+    startHeater();
+  }
+
+  // Ultrasonic mister
+  if (getEnvHumidity(sensorEnvHumidity) <= config.thresholdValues.env_humidity.min) {
+    startMister();
+  }
+
+  // Fan cooler
+  // Has two trigger points, if one is more important than the other
+  // these needs to be separated.
+  if (getEnvHumidity(sensorEnvHumidity) >= config.thresholdValues.env_humidity.max ||
+    getEnvHumidity(sensorEnvHumidity) >= config.thresholdValues.env_temp.max) {
+    startCooler();
+  } else { stopCooler(); }
+
+  // Heating pad
+  if (getWaterTemp(sensorWaterTemp) <= config.thresholdValues.water_temp.min) {
+    startHeatingPad();
+  } else { stopHeatingPad(); }
+
+  // Nutrient pumps
+  if (getWaterEC(sensorWaterEC) < config.thresholdValues.water_ec.min) {
+    startNutrients();
+  }
+
+  // PH pumps
+  if (getWaterPH(sensorWaterPH) < config.thresholdValues.water_ph.min) {
+    startPHUp();
+  }
+
+  if (getWaterPH(sensorWaterPH) > config.thresholdValues.water_ph.min) {
+    startPHDown();
+  }
+
+  ledOff();
 }, 30000);
 
 
