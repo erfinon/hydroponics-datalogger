@@ -403,7 +403,7 @@ setInterval(() => {
   }
 
   ledOff();
-}, 180000);
+}, 300000);
 
 
 // Express data routes
