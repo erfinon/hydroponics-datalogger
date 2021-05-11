@@ -300,7 +300,7 @@ function startNutrients() {
     led.stop().off();
     pump_nutrients1.close();
     pump_nutrients2.close();
-  }, 1000)
+  }, 5000)
 }
 
 // Start the PH up pump
@@ -312,7 +312,7 @@ function startPHUp() {
   setTimeout(() => {
     led.stop().off();
     pump_phup.close();
-  }, 500)
+  }, 5000)
 }
 
 // Start the PH down pump
@@ -324,7 +324,7 @@ function startPHDown() {
   setTimeout(() => {
     led.stop().off();
     pump_phdown.close();
-  }, 1000)
+  }, 5000)
 }
 
 // Stop the fan cooler
