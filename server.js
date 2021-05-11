@@ -317,11 +317,11 @@ function startPHUp() {
   pump_phup.open();
   console.log('Starting PH UP pump..')
 
-  // Do 0.3s incremental gains on pump regulation.
+  // Do 0.20s incremental gains on pump regulation.
   setTimeout(() => {
     led.stop().off();
     pump_phup.close();
-  }, 300)
+  }, 200)
 }
 
 // Start the PH down pump
@@ -330,11 +330,11 @@ function startPHDown() {
   pump_phdown.open()
   console.log('Starting PH DOWN pump..')
 
-  // Do 0.08s incremental gains on pump regulation.
+  // Do 0.05s incremental gains on pump regulation.
   setTimeout(() => {
     led.stop().off();
     pump_phdown.close();
-  }, 80)
+  }, 50)
 }
 
 // Stop the fan cooler
@@ -403,7 +403,7 @@ setInterval(() => {
   }
 
   ledOff();
-}, 300000);
+}, 180000);
 
 
 // Express data routes
