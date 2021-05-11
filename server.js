@@ -321,7 +321,7 @@ function startPHUp() {
   setTimeout(() => {
     led.stop().off();
     pump_phup.close();
-  }, 200)
+  }, 500)
 }
 
 // Start the PH down pump
@@ -330,11 +330,11 @@ function startPHDown() {
   pump_phdown.open()
   console.log('Starting PH DOWN pump..')
 
-  // Do 0.5s incremental gains on pump regulation.
+  // Do 0.1s incremental gains on pump regulation.
   setTimeout(() => {
     led.stop().off();
     pump_phdown.close();
-  }, 200)
+  }, 100)
 }
 
 // Stop the fan cooler
