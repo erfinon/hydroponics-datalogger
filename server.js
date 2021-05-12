@@ -217,7 +217,7 @@ function getAllSensorData(sensor, callback) {
     next(row, tableMeta) {
       const sensorData = tableMeta.toObject(row)
       // default output
-      JSON.stringify(sensorData, null, 2)
+      sensorData.toString();
     },
     error(error) {
       return callback(error);
@@ -403,7 +403,7 @@ setInterval(() => {
   }
 
   ledOff();
-}, 300000);
+}, 600000);
 
 
 // Express data routes
