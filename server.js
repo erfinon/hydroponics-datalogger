@@ -161,7 +161,7 @@ function getWaterEC(sensorWaterEC) {
   let ec_value25 = ec_value / (1.0+0.02*(ec_temperature-25.0)); // Temperature compensation
 
   //return (ec_value25 * tds_factor).toFixed(2);
-  return(1000);
+  return(1000.00);
 }
 
 // Read voltage from analog sensor and convert
@@ -255,7 +255,7 @@ function ledOff() {
 }
 
 // Start the heater
-function startHeater() {
+function startHeater(callback) {
   led.pulse(1000);
   ed_fanheater.open();
   console.log('Starting fan heater..')
@@ -266,17 +266,21 @@ function startHeater() {
     ed_fanheater.close();
     ledOff();
   }, 15000)
+
+  callback(null);
 }
 
 // Start the cooler
-function startCooler() {
+function startCooler(callback) {
   led.pulse(1000);
   ed_fancooler.open();
   console.log('Starting fan cooler..')
+
+  callback(null);
 }
 
 // Start the ultrasonic mister
-function startMister() {
+function startMister(callback) {
   led.pulse(1000);
   ed_mister.open();
   console.log('Starting mister..')
@@ -287,6 +291,8 @@ function startMister() {
     ed_mister.close();
     ledOff();
   }, 15000)
+
+  callback(null);
 }
 
 // Heating pad
@@ -321,7 +327,7 @@ function startPHUp() {
   setTimeout(() => {
     led.stop().off();
     pump_phup.close();
-  }, 75)
+  }, 50)
 }
 
 // Start the PH down pump
@@ -334,7 +340,7 @@ function startPHDown() {
   setTimeout(() => {
     led.stop().off();
     pump_phdown.close();
-  }, 25)
+  }, 20)
 }
 
 // Stop the fan cooler
@@ -367,12 +373,16 @@ setInterval(() => {
   // Regulate grow environment
   // Fan heater
   if (getEnvTemp(sensorEnvTemp) <= config.thresholdValues.env_temp.min) {
-    startHeater();
+    startHeater((err) => {
+      if (err) { console.log(err); }
+    });
   }
 
   // Ultrasonic mister
   if (getEnvHumidity(sensorEnvHumidity) <= config.thresholdValues.env_humidity.min) {
-    startMister();
+    startMister((err) => {
+      if (err) { console.log(err); }
+    });
   }
 
   // Fan cooler
