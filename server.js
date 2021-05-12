@@ -246,12 +246,14 @@ function getAllWaterPHData(callback) {
 }
 
 // LED diode function, turn off if no regulating action is performed.
-function ledOff() {
+function ledOff(callback) {
   if (getEnvTemp(sensorEnvTemp) <= config.thresholdValues.env_temp.min && getEnvHumidity(sensorEnvHumidity) <= config.thresholdValues.env_humidity.min &&
     getEnvHumidity(sensorEnvHumidity) >= config.thresholdValues.env_humidity.max && getEnvTemp(sensorEnvTemp) >= config.thresholdValues.env_temp.max &&
     getWaterTemp(sensorWaterTemp) <= config.thresholdValues.water_temp.min) {
     led.stop().off();
   }
+
+  callback(null);
 }
 
 // Start the heater
@@ -264,7 +266,9 @@ function startHeater(callback) {
   // after 15s and do incremental gains.
   setTimeout(() => {
     ed_fanheater.close();
-    ledOff();
+    ledOff((err) => {
+      if (err) { console.log(err); }
+    });
   }, 15000)
 
   callback(null);
@@ -289,70 +293,82 @@ function startMister(callback) {
   // turn off after 15s and do incremental gains.
   setTimeout(() => {
     ed_mister.close();
-    ledOff();
+    ledOff((err) => {
+      if (err) { console.log(err); }
+    });
   }, 15000)
 
   callback(null);
 }
 
 // Heating pad
-function startHeatingPad() {
+function startHeatingPad(callback) {
   led.pulse(1000);
   ed_heatingpad.open();
   console.log('Starting heating pad..')
+
+  callback(null);
 }
 
 // Start the nutrient pumps
-function startNutrients() {
-  led.pulse(1000);
+function startNutrients(callback) {
   pump_nutrients1.open();
   pump_nutrients2.open();
   console.log('Starting nutrient pumps..')
 
   // Do 0.5s incremental gains on pump regulation.
   setTimeout(() => {
-    led.stop().off();
     pump_nutrients1.close();
     pump_nutrients2.close();
   }, 500)
+
+  callback(null);
 }
 
 // Start the PH up pump
-function startPHUp() {
-  led.pulse(1000);
+function startPHUp(callback) {
   pump_phup.open();
   console.log('Starting PH UP pump..')
 
   // Do 0.20s incremental gains on pump regulation.
   setTimeout(() => {
-    led.stop().off();
     pump_phup.close();
   }, 50)
+
+  callback(null);
 }
 
 // Start the PH down pump
-function startPHDown() {
-  led.pulse(1000);
+function startPHDown(callback) {
   pump_phdown.open()
   console.log('Starting PH DOWN pump..')
 
   // Do 0.05s incremental gains on pump regulation.
   setTimeout(() => {
-    led.stop().off();
     pump_phdown.close();
   }, 20)
+
+  callback(null);
 }
 
 // Stop the fan cooler
-function stopCooler() {
+function stopCooler(callback) {
   ed_fancooler.close();
-  ledOff();
+  ledOff((err) => {
+    if (err) { console.log(err); }
+  });
+
+  callback(null);
 }
 
 // Stop the heating pad
-function stopHeatingPad() {
+function stopHeatingPad(callback) {
   ed_heatingpad.close();
-  ledOff();
+  ledOff((err) => {
+    if (err) { console.log(err); }
+  });
+
+  callback(null);
 }
 
 
@@ -390,30 +406,50 @@ setInterval(() => {
   // these needs to be separated.
   if (getEnvHumidity(sensorEnvHumidity) >= config.thresholdValues.env_humidity.max ||
     getEnvHumidity(sensorEnvHumidity) >= config.thresholdValues.env_temp.max) {
-    startCooler();
-  } else { stopCooler(); }
+    startCooler((err) => {
+      if (err) { console.log(err); }
+    });
+  } else {
+    stopCooler((err) => {
+      if (err) { console.log(err); }
+    });
+  }
 
   // Heating pad
   if (getWaterTemp(sensorWaterTemp) <= config.thresholdValues.water_temp.min) {
-    startHeatingPad();
-  } else { stopHeatingPad(); }
+    startHeatingPad((err) => {
+      if (err) { console.log(err); }
+    });
+  } else {
+    stopHeatingPad((err) => {
+      if (err) { console.log(err); }
+    });
+  }
 
   // Nutrient pumps
   if (getWaterEC(sensorWaterEC) < config.thresholdValues.water_ec.min) {
-    startNutrients();
+    startNutrients((err) => {
+      if (err) { console.log(err); }
+    });
   }
 
   // PH pumps
   if (getWaterPH(sensorWaterPH) < config.thresholdValues.water_ph.min) {
-    startPHUp();
+    startPHUp((err) => {
+      if (err) { console.log(err); }
+    });
   }
 
   if (getWaterPH(sensorWaterPH) > config.thresholdValues.water_ph.max) {
-    startPHDown();
+    startPHDown((err) => {
+      if (err) { console.log(err); }
+    });
   }
 
-  ledOff();
-}, 600000);
+  ledOff((err) => {
+    if (err) { console.log(err); }
+  });
+}, 300000);
 
 
 // Express data routes
