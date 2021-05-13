@@ -330,10 +330,10 @@ function startPHUp(callback) {
   pump_phup.open();
   console.log('Starting PH UP pump..')
 
-  // Do 0.20s incremental gains on pump regulation.
+  // Do 0.04 incremental gains on pump regulation.
   setTimeout(() => {
     pump_phup.close();
-  }, 50)
+  }, 40)
 
   callback(null);
 }
@@ -343,10 +343,10 @@ function startPHDown(callback) {
   pump_phdown.open()
   console.log('Starting PH DOWN pump..')
 
-  // Do 0.05s incremental gains on pump regulation.
+  // Do 0.015s incremental gains on pump regulation.
   setTimeout(() => {
     pump_phdown.close();
-  }, 20)
+  }, 15)
 
   callback(null);
 }
