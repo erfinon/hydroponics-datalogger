@@ -346,7 +346,7 @@ function startPHDown(callback) {
   // Do 0.015s incremental gains on pump regulation.
   setTimeout(() => {
     pump_phdown.close();
-  }, 15)
+  }, 20)
 
   callback(null);
 }
@@ -385,8 +385,10 @@ setInterval(() => {
     console.log('Air climate: ', getEnvLight(sensorEnvLight), getEnvTemp(sensorEnvTemp), getEnvHumidity(sensorEnvHumidity));
     console.log('Water quality: ', getWaterTemp(sensorWaterTemp), getWaterEC(sensorWaterEC), getWaterPH(sensorWaterPH));
   }
+}, 60000);
 
-  // Regulate grow environment
+// Regulate grow environment on 5m intervals
+setInterval(() => {
   // Fan heater
   if (getEnvTemp(sensorEnvTemp) <= config.thresholdValues.env_temp.min) {
     startHeater((err) => {
