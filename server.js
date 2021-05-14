@@ -316,11 +316,11 @@ function startNutrients(callback) {
   pump_nutrients2.open();
   console.log('Starting nutrient pumps..')
 
-  // Do 0.5s incremental gains on pump regulation.
+  // Do 0.02s incremental gains on pump regulation.
   setTimeout(() => {
     pump_nutrients1.close();
     pump_nutrients2.close();
-  }, 500)
+  }, 20)
 
   callback(null);
 }
@@ -374,16 +374,19 @@ function stopHeatingPad(callback) {
 
 // Emit sensor data on 5m intervals
 setInterval(() => {
+  let env_light = getEnvLight(sensorEnvLight);
+  let env_temp = getEnvTemp(sensorEnvTemp);
+  let env_humidity = getEnvHumidity(sensorEnvHumidity);
+  let water_temp = getWaterTemp(sensorWaterTemp);
+  let water_ppm = getWaterEC(sensorWaterEC);
+  let water_ph = getWaterPH(sensorWaterPH);
+
+  console.log(`Air climate - Light: ${env_light}, Temp:${env_temp}, Humidity: ${env_humidity}`);
+  console.log(`Water quality - Temp: ${water_temp}, PPM: ${water_ppm}, PH: ${water_ph}`);
+
   // Save to database if enabled in config
   if (config.influxdb.enabled === 1) {
-    console.log('Air climate: ', getEnvLight(sensorEnvLight), getEnvTemp(sensorEnvTemp), getEnvHumidity(sensorEnvHumidity));
-    console.log('Water quality: ', getWaterTemp(sensorWaterTemp), getWaterEC(sensorWaterEC), getWaterPH(sensorWaterPH));
-
-    saveSensorData(getEnvLight(sensorEnvLight), getEnvTemp(sensorEnvTemp), getEnvHumidity(sensorEnvHumidity),
-      getWaterTemp(sensorWaterTemp), getWaterEC(sensorWaterEC), getWaterPH(sensorWaterPH));
-  } else {
-    console.log('Air climate: ', getEnvLight(sensorEnvLight), getEnvTemp(sensorEnvTemp), getEnvHumidity(sensorEnvHumidity));
-    console.log('Water quality: ', getWaterTemp(sensorWaterTemp), getWaterEC(sensorWaterEC), getWaterPH(sensorWaterPH));
+    saveSensorData(env_light, env_temp, env_humidity, water_temp, water_ppm, water_ph);
   }
 }, 60000);
 
@@ -407,7 +410,7 @@ setInterval(() => {
   // Has two trigger points, if one is more important than the other
   // these needs to be separated.
   if (getEnvHumidity(sensorEnvHumidity) >= config.thresholdValues.env_humidity.max ||
-    getEnvHumidity(sensorEnvHumidity) >= config.thresholdValues.env_temp.max) {
+    getEnvTemp(sensorEnvTemp) >= config.thresholdValues.env_temp.max) {
     startCooler((err) => {
       if (err) { console.log(err); }
     });
