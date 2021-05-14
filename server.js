@@ -252,7 +252,6 @@ function ledOff(callback) {
     getWaterTemp(sensorWaterTemp) <= config.thresholdValues.water_temp.min) {
     led.stop().off();
   }
-
   callback(null);
 }
 
