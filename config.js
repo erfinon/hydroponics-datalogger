@@ -39,7 +39,7 @@ module.exports = {
       max: '27',
     },
     env_humidity: {
-      min: '50',
+      min: '40',
       max: '60',
     },
 
