@@ -8,8 +8,8 @@ module.exports = {
   },
   influxdb: {
     enabled: 1,
-    host: 'localhost:8086',
-    //host: '192.168.55.14:8086',
+    //host: 'localhost:8086',
+    host: '192.168.55.14:8086',
     org: 'admin',
     bucket: 'maya',
     username: 'admin',

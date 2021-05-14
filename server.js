@@ -381,7 +381,7 @@ setInterval(() => {
   let water_ppm = getWaterEC(sensorWaterEC);
   let water_ph = getWaterPH(sensorWaterPH);
 
-  console.log(`Air climate - Light: ${env_light}, Temp:${env_temp}, Humidity: ${env_humidity}`);
+  console.log(`Air climate - Light: ${env_light}, Temp: ${env_temp}, Humidity: ${env_humidity}`);
   console.log(`Water quality - Temp: ${water_temp}, PPM: ${water_ppm}, PH: ${water_ph}`);
 
   // Save to database if enabled in config
