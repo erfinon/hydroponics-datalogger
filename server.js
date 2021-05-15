@@ -327,6 +327,7 @@ function startNutrients(callback) {
 // Start the PH up pump
 function startPHUp(callback) {
   pump_phup.open();
+  'PH: ', getWaterPH(sensorWaterPH), 'Threshold: ', config.thresholdValues.water_ph.min)
   console.log('Starting PH UP pump..')
 
   // Do 0.02 incremental gains on pump regulation.
@@ -340,6 +341,7 @@ function startPHUp(callback) {
 // Start the PH down pump
 function startPHDown(callback) {
   pump_phdown.open()
+  console.log('PH: ', getWaterPH(sensorWaterPH), 'Threshold: ', config.thresholdValues.water_ph.max)
   console.log('Starting PH DOWN pump..')
 
   // Do 0.015s incremental gains on pump regulation.
@@ -431,20 +433,20 @@ setInterval(() => {
   }
 
   // Nutrient pumps
-  if (getWaterEC(sensorWaterEC) < config.thresholdValues.water_ec.min) {
+  if (getWaterEC(sensorWaterEC) <= config.thresholdValues.water_ec.min) {
     startNutrients((err) => {
       if (err) { console.log(err); }
     });
   }
 
   // PH pumps
-  if (getWaterPH(sensorWaterPH) < config.thresholdValues.water_ph.min) {
+  if (getWaterPH(sensorWaterPH) <= config.thresholdValues.water_ph.min) {
     startPHUp((err) => {
       if (err) { console.log(err); }
     });
   }
 
-  if (getWaterPH(sensorWaterPH) > config.thresholdValues.water_ph.max) {
+  if (getWaterPH(sensorWaterPH) >= config.thresholdValues.water_ph.max) {
     startPHDown((err) => {
       if (err) { console.log(err); }
     });
