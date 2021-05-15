@@ -52,8 +52,8 @@ module.exports = {
       max: '', // No way to adjust EC down for now
     },
     water_ph: {
-      min: '5.2',
-      max: '6.8',
+      min: '5.20',
+      max: '6.80',
     },
   },
 };
