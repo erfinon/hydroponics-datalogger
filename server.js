@@ -315,11 +315,11 @@ function startNutrients(callback) {
   pump_nutrients2.open();
   console.log('Starting nutrient pumps..')
 
-  // Do 0.02s incremental gains on pump regulation.
+  // Do 0.015s incremental gains on pump regulation.
   setTimeout(() => {
     pump_nutrients1.close();
     pump_nutrients2.close();
-  }, 20)
+  }, 15)
 
   callback(null);
 }
@@ -329,10 +329,10 @@ function startPHUp(callback) {
   pump_phup.open();
   console.log('Starting PH UP pump..')
 
-  // Do 0.04 incremental gains on pump regulation.
+  // Do 0.02 incremental gains on pump regulation.
   setTimeout(() => {
     pump_phup.close();
-  }, 40)
+  }, 20)
 
   callback(null);
 }
@@ -345,7 +345,7 @@ function startPHDown(callback) {
   // Do 0.015s incremental gains on pump regulation.
   setTimeout(() => {
     pump_phdown.close();
-  }, 20)
+  }, 15)
 
   callback(null);
 }
