@@ -2,7 +2,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const logger = require('morgan');
-const path = require('path');
 
 const app = express();
 const config = require('./config.js');
@@ -207,44 +206,6 @@ function saveSensorData(env_light, env_temp, env_humidity, water_temp, water_ec,
     })
 }
 
-// Get all historical data from a particular sensor
-function getAllSensorData(sensor, callback) {
-  const queryApi = client.getQueryApi(config.influxdb.org)
-  const fluxQuery =
-    `from(bucket:"maya") |> range(start: 0) |> filter(fn: (r) => r._measurement == "${sensor}")`
-
-  queryApi.queryRows(fluxQuery, {
-    next(row, tableMeta) {
-      const sensorData = tableMeta.toObject(row)
-      // default output
-      sensorData.toString();
-    },
-    error(error) {
-      return callback(error);
-    },
-  })
-}
-
-// Get all historical data
-function getAllEnvLightData(callback) {
-  return getAllSensorData('env_light', callback);
-}
-function getAllEnvTempData(callback) {
-  return getAllSensorData('env_temp', callback);
-}
-function getAllEnvHumidityData(callback) {
-  return getAllSensorData('env_humidity', callback);
-}
-function getAllWaterTempData(callback) {
-  return getAllSensorData('water_temp', callback);
-}
-function getAllWaterECData(callback) {
-  return getAllSensorData('water_ec', callback);
-}
-function getAllWaterPHData(callback) {
-  return getAllSensorData('water_ph', callback);
-}
-
 // LED diode function, turn off if no regulating action is performed.
 function ledOff(callback) {
   if (getEnvTemp(sensorEnvTemp) <= config.thresholdValues.env_temp.min && getEnvHumidity(sensorEnvHumidity) <= config.thresholdValues.env_humidity.min &&
@@ -261,7 +222,7 @@ function startHeater(callback) {
   ed_fanheater.open();
   console.log('Starting fan heater..')
 
-  // The heater is powerful, turn off
+  // The heater is powerful at 950W, turn off
   // after 15s and do incremental gains.
   setTimeout(() => {
     ed_fanheater.close();
@@ -315,7 +276,7 @@ function startNutrients(callback) {
   pump_nutrients2.open();
   console.log('Starting nutrient pumps..')
 
-  // Do 0.015s incremental gains on pump regulation.
+  // Do 0.02s incremental gains on pump regulation.
   setTimeout(() => {
     pump_nutrients1.close();
     pump_nutrients2.close();
@@ -327,10 +288,9 @@ function startNutrients(callback) {
 // Start the PH up pump
 function startPHUp(callback) {
   pump_phup.open();
-  console.log(`PH: ${getWaterPH(sensorWaterPH)} - Threshold: ${config.thresholdValues.water_ph.min}`)
   console.log('Starting PH UP pump..')
 
-  // Do 0.02 incremental gains on pump regulation.
+  // Do 0.025s incremental gains on pump regulation.
   setTimeout(() => {
     pump_phup.close();
   }, 25)
@@ -341,10 +301,9 @@ function startPHUp(callback) {
 // Start the PH down pump
 function startPHDown(callback) {
   pump_phdown.open()
-  console.log(`PH: ${getWaterPH(sensorWaterPH)} - Threshold: ${config.thresholdValues.water_ph.max}`)
   console.log('Starting PH DOWN pump..')
 
-  // Do 0.015s incremental gains on pump regulation.
+  // Do 0.02s incremental gains on pump regulation.
   setTimeout(() => {
     pump_phdown.close();
   }, 20)
@@ -371,25 +330,6 @@ function stopHeatingPad(callback) {
 
   callback(null);
 }
-
-
-// Emit sensor data on 5m intervals
-setInterval(() => {
-  let env_light = getEnvLight(sensorEnvLight);
-  let env_temp = getEnvTemp(sensorEnvTemp);
-  let env_humidity = getEnvHumidity(sensorEnvHumidity);
-  let water_temp = getWaterTemp(sensorWaterTemp);
-  let water_ppm = getWaterEC(sensorWaterEC);
-  let water_ph = getWaterPH(sensorWaterPH);
-
-  console.log(`Air climate - Light: ${env_light}, Temp: ${env_temp}, Humidity: ${env_humidity}`);
-  console.log(`Water quality - Temp: ${water_temp}, PPM: ${water_ppm}, PH: ${water_ph}`);
-
-  // Save to database if enabled in config
-  if (config.influxdb.enabled === 1) {
-    saveSensorData(env_light, env_temp, env_humidity, water_temp, water_ppm, water_ph);
-  }
-}, 60000);
 
 // Regulate grow environment on 5m intervals
 setInterval(() => {
@@ -432,6 +372,28 @@ setInterval(() => {
     });
   }
 
+  ledOff((err) => {
+    if (err) { console.log(err); }
+  });
+}, 300000);
+
+// Regulate water environment on 10m intervals
+setInterval(() => {
+  let env_light = getEnvLight(sensorEnvLight);
+  let env_temp = getEnvTemp(sensorEnvTemp);
+  let env_humidity = getEnvHumidity(sensorEnvHumidity);
+  let water_temp = getWaterTemp(sensorWaterTemp);
+  let water_ppm = getWaterEC(sensorWaterEC);
+  let water_ph = getWaterPH(sensorWaterPH);
+
+  console.log(`Air climate - Light: ${env_light}, Temp: ${env_temp}, Humidity: ${env_humidity}`);
+  console.log(`Water quality - Temp: ${water_temp}, PPM: ${water_ppm}, PH: ${water_ph}`);
+
+  // Save to database if enabled in config
+  if (config.influxdb.enabled === 1) {
+    saveSensorData(env_light, env_temp, env_humidity, water_temp, water_ppm, water_ph);
+  }
+
   // Nutrient pumps
   if (getWaterEC(sensorWaterEC) <= config.thresholdValues.water_ec.min) {
     startNutrients((err) => {
@@ -451,11 +413,7 @@ setInterval(() => {
       if (err) { console.log(err); }
     });
   }
-
-  ledOff((err) => {
-    if (err) { console.log(err); }
-  });
-}, 300000);
+}, 600000);
 
 
 // Express data routes
@@ -493,60 +451,92 @@ app.get('/api/water_ph', (req, res) => {
 // Historical data, active if influxdb is enabled in the config
 if (config.influxdb.enabled === 1) {
   app.get('/api/db/env_light', (req, res) => {
-    getAllEnvLightData((err, data) => {
-      if (err) { console.log(err); }
-
-      res.write(JSON.stringify(data));
-      res.end();
-    });
+    const fluxQuery =
+      `from(bucket:"${config.influxdb.bucket}") |> range(start: 0) |> filter(fn: (r) => r._measurement == "env_light") 
+      |> drop(columns: ["host", "_field", "_start", "_stop", "_measurement"])`
+    queryApi
+      .collectRows(fluxQuery)
+      .then(data => {
+        data.forEach(x => res.write(JSON.stringify(x)));
+        res.end();
+      })
+      .catch(error => {
+        console.log(error);
+      })
   });
 
   app.get('/api/db/env_temp', (req, res) => {
-    getAllEnvTempData((err, data) => {
-      if (err) { console.log(err); }
-
-      res.write(JSON.stringify(data));
-      res.end();
-    });
+    const fluxQuery =
+      `from(bucket:"${config.influxdb.bucket}") |> range(start: 0) |> filter(fn: (r) => r._measurement == "env_temp") 
+      |> drop(columns: ["host", "_field", "_start", "_stop", "_measurement"])`
+    queryApi
+      .collectRows(fluxQuery)
+      .then(data => {
+        data.forEach(x => res.write(JSON.stringify(x)));
+        res.end();
+      })
+      .catch(error => {
+        console.log(error);
+      });
   });
 
   app.get('/api/db/env_humidity', (req, res) => {
-    getAllEnvHumidityData((err, data) => {
-      if (err) { console.log(err); }
-
-      res.write(JSON.stringify(data));
-      res.end();
-    });
+    const fluxQuery =
+      `from(bucket:"${config.influxdb.bucket}") |> range(start: 0) |> filter(fn: (r) => r._measurement == "env_humidity") 
+      |> drop(columns: ["host", "_field", "_start", "_stop", "_measurement"])`
+    queryApi
+      .collectRows(fluxQuery)
+      .then(data => {
+        data.forEach(x => res.write(JSON.stringify(x)));
+        res.end();
+      })
+      .catch(error => {
+        console.log(error);
+      });
   });
 
   app.get('/api/db/water_temp', (req, res) => {
-    getAllWaterTempData((err, data) => {
-      if (err) { console.log(err); }
-
-      res.write(JSON.stringify(data));
-      res.end();
-    });
+    const fluxQuery =
+      `from(bucket:"${config.influxdb.bucket}") |> range(start: 0) |> filter(fn: (r) => r._measurement == "water_temp") 
+      |> drop(columns: ["host", "_field", "_start", "_stop", "_measurement"])`
+    queryApi
+      .collectRows(fluxQuery)
+      .then(data => {
+        data.forEach(x => res.write(JSON.stringify(x)));
+        res.end();
+      })
+      .catch(error => {
+        console.log(error);
+      });
   });
 
   app.get('/api/db/water_ec', (req, res) => {
-    getAllWaterECData((err, data) => {
-      if (err) { console.log(err); }
-
-      res.write(JSON.stringify(data));
-      res.end();
-    });
+    const fluxQuery =
+      `from(bucket:"${config.influxdb.bucket}") |> range(start: 0) |> filter(fn: (r) => r._measurement == "water_ec") 
+      |> drop(columns: ["host", "_field", "_start", "_stop", "_measurement"])`
+    queryApi
+      .collectRows(fluxQuery)
+      .then(data => {
+        data.forEach(x => res.write(JSON.stringify(x)));
+        res.end();
+      })
+      .catch(error => {
+        console.log(error);
+      });
   });
 
   app.get('/api/db/water_ph', (req, res) => {
-    getAllWaterPHData((err, data) => {
-      if (err) { console.log(err); }
-
-      res.write(JSON.stringify(data));
-      res.end();
-    });
+    const fluxQuery =
+      `from(bucket:"${config.influxdb.bucket}") |> range(start: 0) |> filter(fn: (r) => r._measurement == "water_ph") 
+      |> drop(columns: ["host", "_field", "_start", "_stop", "_measurement"])`
+    queryApi
+      .collectRows(fluxQuery)
+      .then(data => {
+        data.forEach(x => res.write(JSON.stringify(x)));
+        res.end();
+      })
+      .catch(error => {
+        console.log(error);
+      });
   });
 }
-
-module.exports = {
-  app,
-};
