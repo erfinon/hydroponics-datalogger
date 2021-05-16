@@ -5,7 +5,7 @@ const logger = require('morgan');
 const path = require('path');
 
 const app = express();
-const config = require(path.join(`${__dirname}/config.js`));
+const config = require('./config.js');
 
 const {InfluxDB, FluxTableMetaData, Point} = require('@influxdata/influxdb-client');
 const client = new InfluxDB({url: 'http://' + config.influxdb.host, token: config.influxdb.token});
@@ -158,7 +158,7 @@ function getWaterEC(sensorWaterEC) {
   let ec_temperature = getWaterTemp(sensorWaterTemp);
   let ec_voltage = sensorWaterEC.value * 5 / 1024;
   let ec_value = (133.42 * ec_voltage * ec_voltage * ec_voltage - 255.86 * ec_voltage * ec_voltage + 857.39 * ec_voltage) * ec_kvalue;
-  let ec_value25 = ec_value / (1.0+0.02*(ec_temperature-25.0)); // Temperature compensation
+  let ec_value25 = ec_value / (1.0 + 0.02 * (ec_temperature-25.0)); // Temperature compensation
 
   //return (ec_value25 * tds_factor).toFixed(2);
   return(1000.00);
