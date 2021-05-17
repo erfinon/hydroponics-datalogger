@@ -379,21 +379,6 @@ setInterval(() => {
 
 // Regulate water environment on 10m intervals
 setInterval(() => {
-  let env_light = getEnvLight(sensorEnvLight);
-  let env_temp = getEnvTemp(sensorEnvTemp);
-  let env_humidity = getEnvHumidity(sensorEnvHumidity);
-  let water_temp = getWaterTemp(sensorWaterTemp);
-  let water_ppm = getWaterEC(sensorWaterEC);
-  let water_ph = getWaterPH(sensorWaterPH);
-
-  console.log(`Air climate - Light: ${env_light}, Temp: ${env_temp}, Humidity: ${env_humidity}`);
-  console.log(`Water quality - Temp: ${water_temp}, PPM: ${water_ppm}, PH: ${water_ph}`);
-
-  // Save to database if enabled in config
-  if (config.influxdb.enabled === 1) {
-    saveSensorData(env_light, env_temp, env_humidity, water_temp, water_ppm, water_ph);
-  }
-
   // Nutrient pumps
   if (getWaterEC(sensorWaterEC) <= config.thresholdValues.water_ec.min) {
     startNutrients((err) => {
@@ -415,9 +400,36 @@ setInterval(() => {
   }
 }, 600000);
 
+// Emit and save sensor data on 15m intervals
+setInterval(() => {
+  let env_light = getEnvLight(sensorEnvLight);
+  let env_temp = getEnvTemp(sensorEnvTemp);
+  let env_humidity = getEnvHumidity(sensorEnvHumidity);
+  let water_temp = getWaterTemp(sensorWaterTemp);
+  let water_ppm = getWaterEC(sensorWaterEC);
+  let water_ph = getWaterPH(sensorWaterPH);
+
+  console.log(`Air climate - Light: ${env_light}, Temp: ${env_temp}, Humidity: ${env_humidity}`);
+  console.log(`Water quality - Temp: ${water_temp}, PPM: ${water_ppm}, PH: ${water_ph}`);
+
+  // Save to database if enabled in config
+  if (config.influxdb.enabled === 1) {
+    saveSensorData(env_light, env_temp, env_humidity, water_temp, water_ppm, water_ph);
+  }
+}, 900000);
+
 
 // Express data routes
 // Realtime sensor data
+app.get('/api/all', (req, res) => {
+  res.write('env_light: ' + JSON.stringify(getEnvLight(sensorEnvLight)));
+  res.write('env_temp: ' + JSON.stringify(getEnvTemp(sensorEnvTemp)));
+  res.write('env_humidity: ' + JSON.stringify(getEnvHumidity(sensorEnvHumidity)));
+  res.write('water_temp: ' + JSON.stringify(getWaterTemp(sensorWaterTemp)));
+  res.write('water_ec: ' + JSON.stringify(getWaterEC(sensorWaterEC)));
+  res.write('water_ph: ' + JSON.stringify(getWaterPH(sensorWaterPH)));
+  res.end();
+});
 app.get('/api/env_light', (req, res) => {
   res.write(JSON.stringify(getEnvLight(sensorEnvLight)));
   res.end();
