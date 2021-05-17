@@ -2,10 +2,9 @@
 Sets up a new InfluxDB database with a user, organization
 and bucket. All values are defined in config.js
 */
-const path = require('path')
 const {InfluxDB} = require('@influxdata/influxdb-client')
 const {SetupAPI} = require('@influxdata/influxdb-client-apis')
-const config = require(path.join(`${__dirname}/config.js`));
+const config = require('./config.js');
 
 const org = config.influxdb.org;
 const bucket = config.influxdb.bucket;
