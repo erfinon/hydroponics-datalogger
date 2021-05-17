@@ -20,7 +20,7 @@
       "type": "grafana",
       "id": "grafana",
       "name": "Grafana",
-      "version": "7.5.4"
+      "version": "7.5.5"
     },
     {
       "type": "datasource",
@@ -110,7 +110,7 @@
         "showThresholdMarkers": true,
         "text": {}
       },
-      "pluginVersion": "7.5.4",
+      "pluginVersion": "7.5.5",
       "targets": [
         {
           "groupBy": [
@@ -197,6 +197,8 @@
             "mode": "thresholds"
           },
           "mappings": [],
+          "max": 32,
+          "min": 18,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -206,7 +208,7 @@
               },
               {
                 "color": "red",
-                "value": 27
+                "value": 28
               }
             ]
           },
@@ -233,7 +235,7 @@
         "showThresholdMarkers": true,
         "text": {}
       },
-      "pluginVersion": "7.5.4",
+      "pluginVersion": "7.5.5",
       "targets": [
         {
           "groupBy": [
@@ -284,6 +286,8 @@
             "mode": "thresholds"
           },
           "mappings": [],
+          "max": 65,
+          "min": 40,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -293,7 +297,7 @@
               },
               {
                 "color": "red",
-                "value": 80
+                "value": 60
               }
             ]
           },
@@ -321,7 +325,7 @@
         "showThresholdMarkers": true,
         "text": {}
       },
-      "pluginVersion": "7.5.4",
+      "pluginVersion": "7.5.5",
       "targets": [
         {
           "groupBy": [
@@ -371,6 +375,8 @@
             "mode": "thresholds"
           },
           "mappings": [],
+          "max": 28,
+          "min": 16,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -407,7 +413,7 @@
         "showThresholdMarkers": true,
         "text": {}
       },
-      "pluginVersion": "7.5.4",
+      "pluginVersion": "7.5.5",
       "targets": [
         {
           "groupBy": [
@@ -457,6 +463,8 @@
             "mode": "thresholds"
           },
           "mappings": [],
+          "max": 1200,
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -489,7 +497,7 @@
         "showThresholdMarkers": true,
         "text": {}
       },
-      "pluginVersion": "7.5.4",
+      "pluginVersion": "7.5.5",
       "targets": [
         {
           "groupBy": [
@@ -539,6 +547,8 @@
             "mode": "thresholds"
           },
           "mappings": [],
+          "max": 7,
+          "min": 5,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -548,7 +558,7 @@
               },
               {
                 "color": "red",
-                "value": 7
+                "value": 6.8
               }
             ]
           },
@@ -575,7 +585,7 @@
         "showThresholdMarkers": true,
         "text": {}
       },
-      "pluginVersion": "7.5.4",
+      "pluginVersion": "7.5.5",
       "targets": [
         {
           "groupBy": [
@@ -747,7 +757,7 @@
           "custom": {
             "axisLabel": "",
             "axisPlacement": "auto",
-            "axisSoftMax": 35,
+            "axisSoftMax": 32,
             "axisSoftMin": 18,
             "barAlignment": 0,
             "drawStyle": "line",
@@ -862,6 +872,8 @@
           "custom": {
             "axisLabel": "",
             "axisPlacement": "auto",
+            "axisSoftMax": 60,
+            "axisSoftMin": 40,
             "barAlignment": 0,
             "drawStyle": "line",
             "fillOpacity": 10,
@@ -985,7 +997,7 @@
           "custom": {
             "axisLabel": "",
             "axisPlacement": "auto",
-            "axisSoftMax": 30,
+            "axisSoftMax": 28,
             "axisSoftMin": 16,
             "barAlignment": 0,
             "drawStyle": "line",
@@ -1098,8 +1110,8 @@
           "custom": {
             "axisLabel": "",
             "axisPlacement": "auto",
-            "axisSoftMax": 30,
-            "axisSoftMin": 16,
+            "axisSoftMax": 1200,
+            "axisSoftMin": 0,
             "barAlignment": 0,
             "drawStyle": "line",
             "fillOpacity": 10,
@@ -1203,6 +1215,8 @@
           "custom": {
             "axisLabel": "",
             "axisPlacement": "auto",
+            "axisSoftMax": 7,
+            "axisSoftMin": 5,
             "barAlignment": 0,
             "drawStyle": "line",
             "fillOpacity": 10,
@@ -1322,8 +1336,8 @@
       "1d"
     ]
   },
-  "timezone": "",
+  "timezone": "browser",
   "title": "Hydroponics",
   "uid": "sLwdcA9Gk",
-  "version": 24
+  "version": 9
 }
