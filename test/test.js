@@ -1,6 +1,6 @@
 var supertest = require("supertest");
 var should = require("should");
-const config = require(path.join(`${__dirname}/config.js`));
+const config = require('../config.js');
 
 // This agent refers to PORT where program is runninng.
 var server = supertest.agent("http://localhost:", config.express.port);
