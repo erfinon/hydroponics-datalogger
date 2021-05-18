@@ -159,8 +159,7 @@ function getWaterEC(sensorWaterEC) {
   let ec_value = (133.42 * ec_voltage * ec_voltage * ec_voltage - 255.86 * ec_voltage * ec_voltage + 857.39 * ec_voltage) * ec_kvalue;
   let ec_value25 = ec_value / (1.0 + 0.02 * (ec_temperature-25.0)); // Temperature compensation
 
-  //return (ec_value25 * tds_factor).toFixed(2);
-  return(1000.00);
+  return (ec_value25 * tds_factor).toFixed(2);
 }
 
 // Read voltage from analog sensor and convert
@@ -200,8 +199,8 @@ function saveSensorData(env_light, env_temp, env_humidity, water_temp, water_ec,
     .then(() => {
       console.log('Saving sensor data')
     })
-    .catch(e => {
-      console.error(e)
+    .catch(err => {
+      console.error(err)
       console.log('\\nERROR: Could not save sensor data')
     })
 }
@@ -398,10 +397,7 @@ setInterval(() => {
       if (err) { console.log(err); }
     });
   }
-}, 600000);
 
-// Emit and save sensor data on 15m intervals
-setInterval(() => {
   let env_light = getEnvLight(sensorEnvLight);
   let env_temp = getEnvTemp(sensorEnvTemp);
   let env_humidity = getEnvHumidity(sensorEnvHumidity);
@@ -416,7 +412,12 @@ setInterval(() => {
   if (config.influxdb.enabled === 1) {
     saveSensorData(env_light, env_temp, env_humidity, water_temp, water_ppm, water_ph);
   }
-}, 900000);
+}, 600000);
+
+// Emit and save sensor data on 15m intervals
+//setInterval(() => {
+
+//}, 900000);
 
 
 // Express data routes
