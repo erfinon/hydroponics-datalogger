@@ -45,7 +45,7 @@ const thresholdValues = {
     max: '60',
   },
   water_temp: {
-    min: '19',
+    min: '18',
     max: '', // No way to adjust water temperature down for now
   },
   water_ec: {
