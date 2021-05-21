@@ -2,7 +2,8 @@
 Automated hydroponic system using Arduino Uno, ConfigurableFirmata, Johnny-Five, Express, InfluxDB and Grafana
 
 ## Arduino components
-- Photoresistor
+- KY-011 LED module
+- KY-018 Photoresistor module
 - SHT31D temperature/humidity sensor
 - DS18B20 water temperature sensor
 - DFRobot PH sensor
@@ -13,7 +14,7 @@ Automated hydroponic system using Arduino Uno, ConfigurableFirmata, Johnny-Five,
 - Coupe warmer
 - Fan cooler
 - Heating plate
-- Mister
+- Ultrasonic mister
 - 4x 12V/5W peristaltic pumps
 - 230/12 voltage transformer
 
@@ -50,6 +51,7 @@ Download the Grafana install file and follow the on-screen instructions for inst
 Import dashboard.json from 'Dashboards - Manage' within Grafana.
 
 ## Documentation
+https://github.com/mariusnorheim/hydroponics-datalogger/blob/master/Thesis.pdf
 
 ## Warning
 Connecting the relay module to a power source will automatically power on all relays. Keep this in mind!
