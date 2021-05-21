@@ -12,7 +12,7 @@ const client = new InfluxDB({url: 'http://' + config.influxdb.host, token: confi
 // Enable HTTP bodyParser and logger
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(logger('dev'));
+app.use(logger('common'));
 
 // Start express
 app.listen(config.express.port);
@@ -207,9 +207,9 @@ function saveSensorData(env_light, env_temp, env_humidity, water_temp, water_ec,
 
 // LED diode function, turn off if no regulating action is performed.
 function ledOff(callback) {
-  if (getEnvTemp(sensorEnvTemp) <= config.thresholdValues.env_temp.min && getEnvHumidity(sensorEnvHumidity) <= config.thresholdValues.env_humidity.min &&
-    getEnvHumidity(sensorEnvHumidity) >= config.thresholdValues.env_humidity.max && getEnvTemp(sensorEnvTemp) >= config.thresholdValues.env_temp.max &&
-    getWaterTemp(sensorWaterTemp) <= config.thresholdValues.water_temp.min) {
+  if (getEnvTemp(sensorEnvTemp) < config.thresholdValues.env_temp.min && getEnvHumidity(sensorEnvHumidity) < config.thresholdValues.env_humidity.min &&
+    getEnvHumidity(sensorEnvHumidity) > config.thresholdValues.env_humidity.max && getEnvTemp(sensorEnvTemp) > config.thresholdValues.env_temp.max &&
+    getWaterTemp(sensorWaterTemp) < config.thresholdValues.water_temp.min) {
     led.stop().off();
   }
   callback(null);
@@ -249,13 +249,13 @@ function startMister(callback) {
   console.log('Starting mister..')
 
   // Too much mist can destroy sensors,
-  // turn off after 15s and do incremental gains.
+  // turn off after 30s and do incremental gains.
   setTimeout(() => {
     ed_mister.close();
     ledOff((err) => {
       if (err) { console.log(err); }
     });
-  }, 15000)
+  }, 30000)
 
   callback(null);
 }
@@ -275,11 +275,11 @@ function startNutrients(callback) {
   pump_nutrients2.open();
   console.log('Starting nutrient pumps..')
 
-  // Do 0.02s incremental gains on pump regulation.
+  // Do 0.03s incremental gains on nutrient pump regulation.
   setTimeout(() => {
     pump_nutrients1.close();
     pump_nutrients2.close();
-  }, 20)
+  }, 30)
 
   callback(null);
 }
@@ -289,10 +289,10 @@ function startPHUp(callback) {
   pump_phup.open();
   console.log('Starting PH UP pump..')
 
-  // Do 0.025s incremental gains on pump regulation.
+  // Do 0.02s incremental gains on ph pump regulation.
   setTimeout(() => {
     pump_phup.close();
-  }, 25)
+  }, 20)
 
   callback(null);
 }
@@ -302,7 +302,7 @@ function startPHDown(callback) {
   pump_phdown.open()
   console.log('Starting PH DOWN pump..')
 
-  // Do 0.02s incremental gains on pump regulation.
+  // Do 0.02s incremental gains on ph pump regulation.
   setTimeout(() => {
     pump_phdown.close();
   }, 20)
@@ -333,14 +333,14 @@ function stopHeatingPad(callback) {
 // Regulate grow environment on 5m intervals
 setInterval(() => {
   // Fan heater
-  if (getEnvTemp(sensorEnvTemp) <= config.thresholdValues.env_temp.min) {
+  if (getEnvTemp(sensorEnvTemp) < config.thresholdValues.env_temp.min) {
     startHeater((err) => {
       if (err) { console.log(err); }
     });
   }
 
   // Ultrasonic mister
-  if (getEnvHumidity(sensorEnvHumidity) <= config.thresholdValues.env_humidity.min) {
+  if (getEnvHumidity(sensorEnvHumidity) < config.thresholdValues.env_humidity.min) {
     startMister((err) => {
       if (err) { console.log(err); }
     });
@@ -349,8 +349,8 @@ setInterval(() => {
   // Fan cooler
   // Has two trigger points, if one is more important than the other
   // these needs to be separated.
-  if (getEnvHumidity(sensorEnvHumidity) >= config.thresholdValues.env_humidity.max ||
-    getEnvTemp(sensorEnvTemp) >= config.thresholdValues.env_temp.max) {
+  if (getEnvHumidity(sensorEnvHumidity) > config.thresholdValues.env_humidity.max ||
+    getEnvTemp(sensorEnvTemp) > config.thresholdValues.env_temp.max) {
     startCooler((err) => {
       if (err) { console.log(err); }
     });
@@ -361,7 +361,7 @@ setInterval(() => {
   }
 
   // Heating pad
-  if (getWaterTemp(sensorWaterTemp) <= config.thresholdValues.water_temp.min) {
+  if (getWaterTemp(sensorWaterTemp) < config.thresholdValues.water_temp.min) {
     startHeatingPad((err) => {
       if (err) { console.log(err); }
     });
@@ -376,23 +376,24 @@ setInterval(() => {
   });
 }, 300000);
 
-// Regulate water environment on 10m intervals
+// Regulate water environment, emit
+// and save sensor data on 15m intervals
 setInterval(() => {
   // Nutrient pumps
-  if (getWaterEC(sensorWaterEC) <= config.thresholdValues.water_ec.min) {
+  if (getWaterEC(sensorWaterEC) < config.thresholdValues.water_ec.min) {
     startNutrients((err) => {
       if (err) { console.log(err); }
     });
   }
 
   // PH pumps
-  if (getWaterPH(sensorWaterPH) <= config.thresholdValues.water_ph.min) {
+  if (getWaterPH(sensorWaterPH) < config.thresholdValues.water_ph.min) {
     startPHUp((err) => {
       if (err) { console.log(err); }
     });
   }
 
-  if (getWaterPH(sensorWaterPH) >= config.thresholdValues.water_ph.max) {
+  if (getWaterPH(sensorWaterPH) > config.thresholdValues.water_ph.max) {
     startPHDown((err) => {
       if (err) { console.log(err); }
     });
@@ -412,23 +413,20 @@ setInterval(() => {
   if (config.influxdb.enabled === 1) {
     saveSensorData(env_light, env_temp, env_humidity, water_temp, water_ppm, water_ph);
   }
-}, 600000);
-
-// Emit and save sensor data on 15m intervals
-//setInterval(() => {
-
-//}, 900000);
+}, 900000);
 
 
 // Express data routes
 // Realtime sensor data
 app.get('/api/all', (req, res) => {
-  res.write('env_light: ' + JSON.stringify(getEnvLight(sensorEnvLight)));
-  res.write('env_temp: ' + JSON.stringify(getEnvTemp(sensorEnvTemp)));
-  res.write('env_humidity: ' + JSON.stringify(getEnvHumidity(sensorEnvHumidity)));
-  res.write('water_temp: ' + JSON.stringify(getWaterTemp(sensorWaterTemp)));
-  res.write('water_ec: ' + JSON.stringify(getWaterEC(sensorWaterEC)));
-  res.write('water_ph: ' + JSON.stringify(getWaterPH(sensorWaterPH)));
+  res.write(JSON.stringify({
+    env_light: getEnvLight(sensorEnvLight),
+    env_temp: getEnvTemp(sensorEnvTemp),
+    env_humidity: getEnvHumidity(sensorEnvHumidity),
+    water_temp: getWaterTemp(sensorWaterTemp),
+    water_ec: getWaterEC(sensorWaterEC),
+    water_ph: getWaterPH(sensorWaterPH)
+  }, null, '\t'));
   res.end();
 });
 app.get('/api/env_light', (req, res) => {
