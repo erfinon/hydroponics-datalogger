@@ -461,6 +461,8 @@ app.get('/api/water_ph', (req, res) => {
 
 // Historical data, active if influxdb is enabled in the config
 if (config.influxdb.enabled === 1) {
+  const queryApi = client.getQueryApi(config.influxdb.org);
+
   app.get('/api/db/env_light', (req, res) => {
     const fluxQuery =
       `from(bucket:"${config.influxdb.bucket}") |> range(start: 0) |> filter(fn: (r) => r._measurement == "env_light") 
