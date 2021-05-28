@@ -1,9 +1,9 @@
 const mcu = {
-  port: '/dev/ttyACM0',
+  port: '/dev/ttyACM0'
 }
 
 const express = {
-  port: 4000,
+  port: 4000
 }
 
 const influxdb = {
@@ -13,7 +13,7 @@ const influxdb = {
   bucket: 'maya',
   username: 'admin',
   password: 'growbox123',
-  token: 'tX6rFsAAs6zIaYKwEjv9qrXi8a-udQpmwh_5Y916DCUc5YYFoRr3-FWEcT0u8laKiO6x6J9taupV0vUPo3K1KQ==',
+  token: 'tX6rFsAAs6zIaYKwEjv9qrXi8a-udQpmwh_5Y916DCUc5YYFoRr3-FWEcT0u8laKiO6x6J9taupV0vUPo3K1KQ=='
 }
 
 const sensorPins = {
@@ -21,7 +21,7 @@ const sensorPins = {
   env_light: 'A3',
   water_temp: 2,
   water_ec: 'A0',
-  water_ph: 'A1',
+  water_ph: 'A1'
 }
 
 const relayPins = {
@@ -32,29 +32,29 @@ const relayPins = {
   ed_fanheater: 8,
   ed_fancooler: 9,
   ed_heatingpad: 10,
-  ed_mister: 11,
+  ed_mister: 11
 }
 
 const thresholdValues = {
   env_temp: {
     min: '20',
-    max: '27',
+    max: '27'
   },
   env_humidity: {
     min: '40',
-    max: '60',
+    max: '60'
   },
   water_temp: {
     min: '18',
-    max: '', // No way to adjust water temperature down for now
+    max: '' // No way to adjust water temperature down for now
   },
   water_ec: {
     min: '400',
-    max: '', // No way to adjust EC down for now
+    max: '' // No way to adjust EC down for now
   },
   water_ph: {
-    min: '5.20',
-    max: '6.80',
+    min: '6.00',
+    max: '7.00'
   },
 }
 
