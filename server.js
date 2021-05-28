@@ -151,15 +151,14 @@ function getWaterTemp(sensorWaterTemp) {
 // Read voltage from analog sensor and convert
 // to EC, compensate for temperature and then
 // convert to TDS (total dissolved solids) ppm.
-const ec_kvalue = 1;
 const tds_factor = 0.5;
 function getWaterEC(sensorWaterEC) {
   let ec_temperature = getWaterTemp(sensorWaterTemp);
   let ec_voltage = sensorWaterEC.value * 5 / 1024;
-  let ec_value = (133.42 * ec_voltage * ec_voltage * ec_voltage - 255.86 * ec_voltage * ec_voltage + 857.39 * ec_voltage) * ec_kvalue;
+  let ec_value = (133.42 * ec_voltage * ec_voltage * ec_voltage - 255.86 * ec_voltage * ec_voltage + 857.39 * ec_voltage) * tds_factor;
   let ec_value25 = ec_value / (1.0 + 0.02 * (ec_temperature-25.0)); // Temperature compensation
 
-  return (ec_value25 * tds_factor).toFixed(2);
+  return ec_value25.toFixed(2);
 }
 
 // Read voltage from analog sensor and convert
@@ -332,15 +331,20 @@ function stopHeatingPad(callback) {
 
 // Regulate grow environment on 5m intervals
 setInterval(() => {
+  let env_light = getEnvLight(sensorEnvLight);
+  let env_temp = getEnvTemp(sensorEnvTemp);
+  let env_humidity = getEnvHumidity(sensorEnvHumidity);
+  let water_temp = getWaterTemp(sensorWaterTemp);
+
   // Fan heater
-  if (getEnvTemp(sensorEnvTemp) < config.thresholdValues.env_temp.min) {
+  if (env_light < config.thresholdValues.env_temp.min) {
     startHeater((err) => {
       if (err) { console.log(err); }
     });
   }
 
   // Ultrasonic mister
-  if (getEnvHumidity(sensorEnvHumidity) < config.thresholdValues.env_humidity.min) {
+  if (env_humidity < config.thresholdValues.env_humidity.min) {
     startMister((err) => {
       if (err) { console.log(err); }
     });
@@ -349,8 +353,8 @@ setInterval(() => {
   // Fan cooler
   // Has two trigger points, if one is more important than the other
   // these needs to be separated.
-  if (getEnvHumidity(sensorEnvHumidity) > config.thresholdValues.env_humidity.max ||
-    getEnvTemp(sensorEnvTemp) > config.thresholdValues.env_temp.max) {
+  if (env_humidity > config.thresholdValues.env_humidity.max ||
+    env_temp > config.thresholdValues.env_temp.max) {
     startCooler((err) => {
       if (err) { console.log(err); }
     });
@@ -361,7 +365,7 @@ setInterval(() => {
   }
 
   // Heating pad
-  if (getWaterTemp(sensorWaterTemp) < config.thresholdValues.water_temp.min) {
+  if (water_temp < config.thresholdValues.water_temp.min) {
     startHeatingPad((err) => {
       if (err) { console.log(err); }
     });
@@ -379,32 +383,32 @@ setInterval(() => {
 // Regulate water environment, emit
 // and save sensor data on 15m intervals
 setInterval(() => {
-  // Nutrient pumps
-  if (getWaterEC(sensorWaterEC) < config.thresholdValues.water_ec.min) {
-    startNutrients((err) => {
-      if (err) { console.log(err); }
-    });
-  }
-
-  // PH pumps
-  if (getWaterPH(sensorWaterPH) < config.thresholdValues.water_ph.min) {
-    startPHUp((err) => {
-      if (err) { console.log(err); }
-    });
-  }
-
-  if (getWaterPH(sensorWaterPH) > config.thresholdValues.water_ph.max) {
-    startPHDown((err) => {
-      if (err) { console.log(err); }
-    });
-  }
-
   let env_light = getEnvLight(sensorEnvLight);
   let env_temp = getEnvTemp(sensorEnvTemp);
   let env_humidity = getEnvHumidity(sensorEnvHumidity);
   let water_temp = getWaterTemp(sensorWaterTemp);
   let water_ppm = getWaterEC(sensorWaterEC);
   let water_ph = getWaterPH(sensorWaterPH);
+
+  // Nutrient pumps
+  if (water_ppm < config.thresholdValues.water_ec.min) {
+    startNutrients((err) => {
+      if (err) { console.log(err); }
+    });
+  }
+
+  // PH pumps
+  if (water_ph < config.thresholdValues.water_ph.min) {
+    startPHUp((err) => {
+      if (err) { console.log(err); }
+    });
+  }
+
+  if (water_ph > config.thresholdValues.water_ph.max) {
+    startPHDown((err) => {
+      if (err) { console.log(err); }
+    });
+  }
 
   console.log(`Air climate - Light: ${env_light}, Temp: ${env_temp}, Humidity: ${env_humidity}`);
   console.log(`Water quality - Temp: ${water_temp}, PPM: ${water_ppm}, PH: ${water_ph}`);
