@@ -56,7 +56,7 @@ https://github.com/mariusnorheim/hydroponics-datalogger/blob/master/Thesis.pdf
 ## Warning
 Connecting the relay module to a power source will automatically power on all relays. Keep this in mind!
 
-Starting the app will power the relay module for a few ms, connecting power to the peristaltic pumps should be avoided until the app is running. Unfortunately I haven't found a working solution to avoid these issues.
+Place an appropriate Capacitor with water pump or anything else that has the potential of drawing too much amperages at start time. It cause problem that lead the board to unstable status. ( like freezing serial communication, auto reset, burn out ) 
 
 ### Install dependencies
 npm install
